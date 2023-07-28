@@ -25,6 +25,7 @@ namespace AvaloniaWebView.Interop
     internal unsafe partial interface IWebViewFactory : global::MicroCom.Runtime.IUnknown
     {
         INativeWebView CreateWebView(INativeWebViewHandlers handlers);
+        void InvalidateAllManagedReferences();
     }
 
     internal unsafe partial interface INativeWebView : global::MicroCom.Runtime.IUnknown
@@ -70,6 +71,14 @@ namespace AvaloniaWebView.Interop.Impl
             return global::MicroCom.Runtime.MicroComRuntime.CreateProxyOrNullFor<INativeWebView>(__result, true);
         }
 
+        public void InvalidateAllManagedReferences()
+        {
+            int __result;
+            __result = (int)((delegate* unmanaged[Stdcall]<void*, int>)(*PPV)[base.VTableSize + 1])(PPV);
+            if (__result != 0)
+                throw new System.Runtime.InteropServices.COMException("InvalidateAllManagedReferences failed", __result);
+        }
+
         [System.Runtime.CompilerServices.ModuleInitializer()]
         internal static void __MicroComModuleInit()
         {
@@ -80,7 +89,7 @@ namespace AvaloniaWebView.Interop.Impl
         {
         }
 
-        protected override int VTableSize => base.VTableSize + 1;
+        protected override int VTableSize => base.VTableSize + 2;
     }
 
     unsafe class __MicroComIWebViewFactoryVTable : global::MicroCom.Runtime.MicroComVtblBase
@@ -110,12 +119,45 @@ namespace AvaloniaWebView.Interop.Impl
             }
         }
 
+        [System.Runtime.InteropServices.UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.StdCall)]
+        delegate int InvalidateAllManagedReferencesDelegate(void* @this);
+#if NET5_0_OR_GREATER
+        [System.Runtime.InteropServices.UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvStdcall) })] 
+#endif
+        static int InvalidateAllManagedReferences(void* @this)
+        {
+            IWebViewFactory __target = null;
+            try
+            {
+                {
+                    __target = (IWebViewFactory)global::MicroCom.Runtime.MicroComRuntime.GetObjectFromCcw(new IntPtr(@this));
+                    __target.InvalidateAllManagedReferences();
+                }
+            }
+            catch (System.Runtime.InteropServices.COMException __com_exception__)
+            {
+                return __com_exception__.ErrorCode;
+            }
+            catch (System.Exception __exception__)
+            {
+                global::MicroCom.Runtime.MicroComRuntime.UnhandledException(__target, __exception__);
+                return unchecked((int)0x80004005u);
+            }
+
+            return 0;
+        }
+
         protected __MicroComIWebViewFactoryVTable()
         {
 #if NET5_0_OR_GREATER
             base.AddMethod((delegate* unmanaged[Stdcall]<void*, void*, void*>)&CreateWebView); 
 #else
             base.AddMethod((CreateWebViewDelegate)CreateWebView); 
+#endif
+#if NET5_0_OR_GREATER
+            base.AddMethod((delegate* unmanaged[Stdcall]<void*, int>)&InvalidateAllManagedReferences); 
+#else
+            base.AddMethod((InvalidateAllManagedReferencesDelegate)InvalidateAllManagedReferences); 
 #endif
         }
 

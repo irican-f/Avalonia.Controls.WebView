@@ -18,12 +18,20 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
     private readonly Dictionary<int, TaskCompletionSource<string?>> _scriptResults = new();
     private int _scriptResultsCurrent;
 
+    static NativeWebViewAdapter()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            using var factory = MicroComRuntime.CreateProxyFor<IWebViewFactory>(CreateWebViewNativeFactory(), true);
+            factory.InvalidateAllManagedReferences();
+        };
+    }
+    
     public NativeWebViewAdapter()
     {
         using var factory = MicroComRuntime.CreateProxyFor<IWebViewFactory>(CreateWebViewNativeFactory(), true);
         _callbacks = new NativeWebViewCallbacks(this);
         _nativeWebView = factory.CreateWebView(_callbacks);
-        
         AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
     }
 
@@ -34,7 +42,15 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
 
     public Uri? Source
     {
-        get => Uri.TryCreate(_nativeWebView.Source.String, UriKind.RelativeOrAbsolute, out var source) ? source : null;
+        get
+        {
+            using (_nativeWebView.Source)
+            {
+                return Uri.TryCreate(_nativeWebView.Source.String, UriKind.RelativeOrAbsolute, out var source) ?
+                    source :
+                    null;
+            }
+        }
         set => Navigate(value!);
     }
 
@@ -126,13 +142,28 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
             _adapter = adapter;
         }
 
-        public void OnScriptResult(int id, int isError, IAvnString ppv) =>
-            _adapter.OnScriptResult(id, isError == 1, ppv.String);
+        public void OnScriptResult(int id, int isError, IAvnString ppv)
+        {
+            using (ppv)
+            {
+                _adapter.OnScriptResult(id, isError == 1, ppv.String);
+            }
+        }
 
-        public void OnNavigationCompleted(IAvnString url, int success) =>
-            _adapter.OnNavigationCompleted(url.String, success == 1);
+        public void OnNavigationCompleted(IAvnString url, int success)
+        {
+            using (url)
+            {
+                _adapter.OnNavigationCompleted(url.String, success == 1);
+            }
+        }
 
-        public unsafe void OnNavigationStarted(IAvnString url, int* cancel) =>
-            *cancel = _adapter.OnNavigationStarted(url.String) ? 1 : 0;
+        public unsafe void OnNavigationStarted(IAvnString url, int* cancel)
+        {
+            using (url)
+            {
+                *cancel = _adapter.OnNavigationStarted(url.String) ? 1 : 0;
+            }
+        }
     }
 }

@@ -101,3 +101,18 @@ NSString* GetNSStringAndRelease(IAvnString* s)
     
     return result;
 }
+
+
+NSString* GetNSStringWithoutRelease(IAvnString* s)
+{
+    NSString* result = nil;
+    
+    if (s != nullptr)
+    {
+        char* p;
+        if (s->Pointer((void**)&p) == S_OK && p != nullptr)
+            result = [NSString stringWithUTF8String:p];
+    }
+    
+    return result;
+}

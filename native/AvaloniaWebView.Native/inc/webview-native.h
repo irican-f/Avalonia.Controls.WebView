@@ -10,6 +10,7 @@ COMINTERFACE(IWebViewFactory, 809c652e, 7396, 11d2, 97, 71, 00, a0, cf, b4, d5, 
     virtual INativeWebView* CreateWebView (
         INativeWebViewHandlers* handlers
     ) = 0;
+    virtual HRESULT InvalidateAllManagedReferences () = 0;
 };
 COMINTERFACE(INativeWebView, e5aca67b, 02b7, 4129, aa, 79, d6, e4, 17, 21, 0b, da) : IUnknown
 {

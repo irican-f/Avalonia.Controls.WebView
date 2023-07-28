@@ -5,6 +5,8 @@
 
 @interface WebViewHandlers : NSObject<WKNavigationDelegate>
 -(id)initWithHandlers: (INativeWebViewHandlers*) arg;
+-(void)releaseHandlers;
+-(void)onScriptResult:(int)index withResult:(id)result withError:(NSError*)error;
 @end
 
 class WebViewNative : public ComSingleObject<INativeWebView, &IID_INativeWebView>
@@ -12,35 +14,34 @@ class WebViewNative : public ComSingleObject<INativeWebView, &IID_INativeWebView
 private:
     WKWebView* _webView;
     WebViewHandlers* _handlersWrapper;
-    INativeWebViewHandlers* _handlers;
 
 public:
     FORWARD_IUNKNOWN()
 
-    WebViewNative(INativeWebViewHandlers* handlers)
+    WebViewNative(WebViewHandlers* handlers)
     {
         WKWebViewConfiguration* config = [[WKWebViewConfiguration alloc] init];
         CGRect frame = {};
         _webView = [[WKWebView alloc] initWithFrame:frame configuration:config];
-        _handlers = handlers;
-        _handlersWrapper = [[WebViewHandlers alloc] initWithHandlers: _handlers];
-        _webView.navigationDelegate = _handlersWrapper;
+        _webView.navigationDelegate = handlers;
+        _handlersWrapper = handlers;
     }
 
     ~WebViewNative()
     {
+        [_handlersWrapper releaseHandlers];
         _handlersWrapper = nullptr;
-        _handlers = nullptr;
+        _webView.navigationDelegate = nullptr;
         _webView = nullptr;
     }
-    
+
     virtual void* AsNsView () override
     {
         START_COM_CALL;
         
         @autoreleasepool
         {
-            return (__bridge_retained void*)_webView;
+            return (__bridge void*)_webView;
         }
     };
 
@@ -103,7 +104,7 @@ public:
         @autoreleasepool
         {
             if (url == nullptr) return E_POINTER;
-            NSURL* nsUrl = [NSURL URLWithString: GetNSStringAndRelease(url)];
+            NSURL* nsUrl = [NSURL URLWithString: GetNSStringWithoutRelease(url)];
             NSURLRequest* request = [NSURLRequest requestWithURL: nsUrl];
             [_webView loadRequest:request];
             return S_OK;
@@ -117,7 +118,7 @@ public:
         @autoreleasepool
         {
             if (text == nullptr) return E_POINTER;
-            auto navigation = [_webView loadHTMLString: GetNSStringAndRelease(text) baseURL: nullptr];
+            auto navigation = [_webView loadHTMLString: GetNSStringWithoutRelease(text) baseURL: nullptr];
             return S_OK;
         }
     }
@@ -149,17 +150,10 @@ public:
         
         @autoreleasepool
         {
-            auto scriptStr = GetNSStringAndRelease(script);
+            auto scriptStr = GetNSStringWithoutRelease(script);
             
             [_webView evaluateJavaScript:scriptStr completionHandler:^(id _Nullable value, NSError * _Nullable error) {
-                if (error != nullptr)
-                {
-                    _handlers->OnScriptResult(index, true, CreateAvnString(error.localizedDescription));
-                }
-                else
-                {
-                    _handlers->OnScriptResult(index, false, CreateAvnString((NSString *)value));
-                }
+                [_handlersWrapper onScriptResult: index withResult:value withError:error];
             }];
             return S_OK;
         }
@@ -167,17 +161,22 @@ public:
 };
 
 @implementation WebViewHandlers {
-    INativeWebViewHandlers* handler;
+    ComPtr<INativeWebViewHandlers> handler;
 }
 - (id)initWithHandlers: (INativeWebViewHandlers*) arg
 {
     handler = arg;
     return self;
 }
+- (void)releaseHandlers
+{
+    handler = nil;
+}
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
     @autoreleasepool
     {
+        if (handler == nullptr) return;
         auto url = webView.URL.absoluteString;
         auto str = CreateAvnString(url);
         handler->OnNavigationCompleted(str, true);
@@ -189,6 +188,7 @@ public:
 {
     @autoreleasepool
     {
+        if (handler == nullptr) return;
         auto url = webView.URL.absoluteString;
         auto str = CreateAvnString(url);
         bool cancel = false;
@@ -203,10 +203,27 @@ public:
         }
     }
 }
+-(void)onScriptResult:(int)index withResult:(id)result withError:(NSError*)error
+{
+    @autoreleasepool
+    {
+        if (handler == nullptr) return;
+        if (error != nullptr)
+        {
+            handler->OnScriptResult(index, true, CreateAvnString(error.localizedDescription));
+        }
+        else
+        {
+            handler->OnScriptResult(index, false, CreateAvnString((NSString *)result));
+        }
+    }
+}
 @end
 
 class WebViewNativeFactory : public ComSingleObject<IWebViewFactory, &IID_IWebViewFactory>
 {
+private:
+    NSMutableArray* _handlersArray;
 public:
     FORWARD_IUNKNOWN()
     
@@ -220,9 +237,26 @@ public:
         {
             if(handlers == nullptr)
                 return nullptr;
-            return new WebViewNative(handlers);
+            
+            if (_handlersArray == nullptr)
+                _handlersArray = [[NSMutableArray alloc] init];
+            
+            auto handlersWrapper = [[WebViewHandlers alloc] initWithHandlers: handlers];
+            [_handlersArray addObject: handlersWrapper];
+            return new WebViewNative(handlersWrapper);
         }
     };
+    
+    virtual HRESULT InvalidateAllManagedReferences () override
+    {
+        for (WebViewHandlers * item in _handlersArray)
+        {
+            [item releaseHandlers];
+        }
+        [_handlersArray removeAllObjects];
+        
+        return S_OK;
+    }
 };
 
 extern "C" IWebViewFactory* CreateWebViewNativeFactory()
