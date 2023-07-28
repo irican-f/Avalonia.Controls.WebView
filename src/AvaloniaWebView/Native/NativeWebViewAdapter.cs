@@ -8,7 +8,7 @@ using MicroCom.Runtime;
 
 namespace AvaloniaWebView;
 
-internal class NativeWebViewAdapter : IWebViewAdapter
+internal sealed class NativeWebViewAdapter : IWebViewAdapter
 {
     [DllImport("libWebView")]
     private static extern IntPtr CreateWebViewNativeFactory();
@@ -23,8 +23,10 @@ internal class NativeWebViewAdapter : IWebViewAdapter
         using var factory = MicroComRuntime.CreateProxyFor<IWebViewFactory>(CreateWebViewNativeFactory(), true);
         _callbacks = new NativeWebViewCallbacks(this);
         _nativeWebView = factory.CreateWebView(_callbacks);
+        
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
     }
-    
+
     public event EventHandler<WebViewNavigationCompletedEventArgs>? NavigationCompleted;
     public event EventHandler<WebViewNavigationStartingEventArgs>? NavigationStarted;
     public bool CanGoBack => _nativeWebView.CanGoBack == 1;
@@ -68,6 +70,7 @@ internal class NativeWebViewAdapter : IWebViewAdapter
 
     public void Dispose()
     {
+        AppDomain.CurrentDomain.ProcessExit -= CurrentDomainOnProcessExit;
         _nativeWebView.Dispose();
         _callbacks.Dispose();
     }
@@ -107,6 +110,11 @@ internal class NativeWebViewAdapter : IWebViewAdapter
         var args = new WebViewNavigationStartingEventArgs { Request = new Uri(url) };
         NavigationStarted?.Invoke(this, args);
         return args.Cancel;
+    }
+    
+    private void CurrentDomainOnProcessExit(object? sender, EventArgs e)
+    {
+        Dispose();
     }
     
     private class NativeWebViewCallbacks : CallbackBase, INativeWebViewHandlers
