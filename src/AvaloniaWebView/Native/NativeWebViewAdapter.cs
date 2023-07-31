@@ -78,7 +78,7 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
     public void NavigateToString(string text)
     {
         using var str = new AvnString(text);
-        _nativeWebView.Navigate(str);
+        _nativeWebView.NavigateToString(str);
     }
 
     public bool Refresh() => _nativeWebView.Refresh() == 1;

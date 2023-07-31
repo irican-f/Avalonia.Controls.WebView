@@ -28,6 +28,7 @@ public:
             [[config preferences] setJavaScriptEnabled: true];
         }
         [config.userContentController addScriptMessageHandler:handlers name:@"postWebViewMessage"];
+        [config.preferences setValue:@YES forKey:@"developerExtrasEnabled"]; // only for debug
 
         CGRect frame = {};
         _webView = [[WKWebView alloc] initWithFrame:frame configuration:config];

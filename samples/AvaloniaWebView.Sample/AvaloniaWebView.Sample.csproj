@@ -13,6 +13,7 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
    </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AvaloniaWebView.TinyMCE\AvaloniaWebView.TinyMCE.csproj" />
     <ProjectReference Include="..\..\src\AvaloniaWebView\AvaloniaWebView.csproj" />
   </ItemGroup>
   

@@ -160,7 +160,7 @@ public class NativeWebView : NativeControlHost, IWebView
         {
             if (_webViewAdapter is { IsInitialized: true })
             {
-                _webViewAdapter.Source = change.GetNewValue<Uri?>() ?? s_emptyPageLink;
+                //_webViewAdapter.Source = change.GetNewValue<Uri?>() ?? s_emptyPageLink;
             }
         }
         else if (change.Property == BoundsProperty)

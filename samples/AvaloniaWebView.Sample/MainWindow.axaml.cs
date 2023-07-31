@@ -1,5 +1,7 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
+using AvaloniaWebView.TinyMCE;
 
 namespace AvaloniaWebView.Sample;
 
@@ -25,5 +27,13 @@ public partial class MainWindow : Window
     private void NativeWebView_OnWebMessageReceived(object? sender, WebMessageReceivedEventArgs e)
     {
         Console.WriteLine(e.Body);
+    }
+
+    private void AvaloniaObject_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == TinyMceView.HtmlTextProperty)
+        {
+            Console.WriteLine(e.NewValue);
+        }
     }
 }

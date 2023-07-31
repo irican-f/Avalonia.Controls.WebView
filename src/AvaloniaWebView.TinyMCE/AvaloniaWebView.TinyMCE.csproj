@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AvaloniaWebView\AvaloniaWebView.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="tiny_mce.min.js" />
+      <AvaloniaResource Include="tiny_mce.min.js" />
+    </ItemGroup>
+
+</Project>
