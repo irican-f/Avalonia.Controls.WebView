@@ -1,0 +1,173 @@
+@clr-namespace AvaloniaWebView.Interop
+@clr-access internal
+@clr-map FLOAT float
+@clr-map HSTRING IntPtr
+@clr-map Vector2 System.Numerics.Vector2
+@clr-map Vector3 System.Numerics.Vector3
+@clr-map Quaternion System.Numerics.Quaternion
+@clr-map Matrix4x4 System.Numerics.Matrix4x4
+@clr-map RECT AvaloniaWebView.Win.FoundationRect
+@clr-map SIZE AvaloniaWebView.Win.Size
+@clr-map POINT AvaloniaWebView.Win.Point
+@clr-map HWND IntPtr
+@clr-map BSTR IntPtr
+@clr-map VARIANT_BOOL int
+@clr-map VARIANT void*
+@clr-map BOOL int
+@clr-map DWORD int
+@clr-map BOOLEAN int
+@clr-map BYTE byte
+@clr-map INT16 short
+@clr-map WORD short
+@clr-map INT32 int
+@clr-map UINT uint
+@clr-map LCID int
+@clr-map DISPID int
+@clr-map INT64 long
+@clr-map UINT16 ushort
+@clr-map UINT32 uint
+@clr-map UINT64 ulong
+@clr-map DOUBLE double
+@clr-map GUID System.Guid
+@clr-map REFIID System.Guid*
+@clr-map WCHAR System.Char
+@clr-map LPOLESTR System.Char*
+
+[uuid(00020400-0000-0000-C000-000000000046)]
+interface IDispatch : IUnknown
+{
+    HRESULT GetTypeInfoCount(
+        UINT * pctinfo);
+
+    HRESULT GetTypeInfo(
+        UINT iTInfo,
+        LCID lcid,
+        void** ppTInfo);
+
+    HRESULT GetIDsOfNames(
+        REFIID riid,
+        LPOLESTR* rgszNames,
+        UINT cNames,
+        LCID lcid,
+        DISPID* rgDispId);
+
+    HRESULT Invoke(
+        DISPID dispIdMember,
+        REFIID riid,
+        LCID lcid,
+        WORD wFlags,
+        void* pDispParams,
+        void* pVarResult,
+        void* pExcepInfo,
+        UINT* puArgErr);
+};
+
+[uuid(EAB22AC1-30C1-11CF-A7EB-0000C05BAE0B)]
+interface IWebBrowser : IDispatch
+{
+    HRESULT GoBack();
+    HRESULT GoForward();
+    HRESULT GoHome();
+    HRESULT GoSearch();
+
+    HRESULT Navigate([in] BSTR URL,
+        [in, optional, unique] void* Flags,
+        [in, optional, unique] void* TargetFrameName,
+        [in, optional, unique] void* PostData,
+        [in, optional, unique] void* Headers);
+
+    HRESULT Refresh();
+    HRESULT Refresh2([in, optional, unique] void* Level);
+
+    HRESULT Stop();
+
+    HRESULT Application([out, retval] IDispatch** ppDisp);
+
+    HRESULT Parent([out, retval] IDispatch** ppDisp);
+
+    HRESULT Container([out, retval] IDispatch** ppDisp);
+
+    HRESULT Document([out, retval] IDispatch** ppDisp);
+
+    HRESULT TopLevelContainer([out, retval] VARIANT_BOOL* pBool);
+
+    HRESULT Type([out, retval] BSTR* Type);
+
+    HRESULT Left([out, retval] long* pl);
+    
+    HRESULT SetLeft([in] long Left);
+    
+    HRESULT Top([out, retval] long* pl);
+    
+    HRESULT SetTop([in] long Top);
+    
+    HRESULT Width([out, retval] long* pl);
+    
+    HRESULT SetWidth([in] long Width);
+    
+    HRESULT Height([out, retval] long* pl);
+    
+    HRESULT SetHeight([in] long Height);
+
+    
+    HRESULT LocationName([out, retval] BSTR* LocationName);
+
+    
+    HRESULT LocationURL([out, retval] BSTR* LocationURL);
+
+    HRESULT Busy([out, retval] VARIANT_BOOL* pBool);
+}
+
+[uuid(0002DF05-0000-0000-C000-000000000046)]
+interface IWebBrowserApp : IWebBrowser
+{
+    HRESULT Quit();
+
+    HRESULT ClientToWindow([in, out] int* pcx, [in, out] int* pcy);
+
+    HRESULT PutProperty([in] BSTR Property, [in] VARIANT vtValue);
+
+    HRESULT GetProperty([in] BSTR Property, [out, retval] VARIANT* pvtValue);
+
+    HRESULT Name([out, retval] BSTR* Name);
+
+    HRESULT HWND([out, retval] HWND* pHWND);
+
+    HRESULT FullName([out, retval] BSTR* FullName);
+
+    HRESULT Path([out, retval] BSTR* Path);
+
+    HRESULT Visible([out, retval] VARIANT_BOOL* pBool);
+
+    HRESULT SetVisible([in] VARIANT_BOOL Value);
+
+    HRESULT StatusBar([out, retval] VARIANT_BOOL* pBool);
+
+    HRESULT SetStatusBar([in] VARIANT_BOOL Value);
+
+    HRESULT StatusText([out, retval] BSTR* StatusText);
+
+    HRESULT SetStatusText([in] BSTR StatusText);
+
+    HRESULT ToolBar([out, retval] int* Value);
+
+    HRESULT SetToolBar([in] int Value);
+
+    HRESULT MenuBar([out, retval] VARIANT_BOOL* Value);
+
+    HRESULT SetMenuBar([in] VARIANT_BOOL Value);
+
+    HRESULT FullScreen([out, retval] VARIANT_BOOL* pbFullScreen);
+
+    HRESULT SetFullScreen([in] VARIANT_BOOL bFullScreen);
+}
+
+[uuid(D30C1661-CDAF-11d0-8A3E-00C04FC9E26E)]
+interface IWebBrowser2 : IWebBrowserApp
+{
+    HRESULT Navigate2([in] VARIANT* URL,
+        [in, optional, unique] VARIANT* Flags,
+        [in, optional, unique] VARIANT* TargetFrameName,
+        [in, optional, unique] VARIANT* PostData,
+        [in, optional, unique] VARIANT* Headers);
+}

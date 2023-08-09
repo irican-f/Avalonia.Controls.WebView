@@ -96,6 +96,7 @@ public class NativeWebView : NativeControlHost, IWebView
         else
         {
             return base.CreateNativeControlCore(parent);
+            //adapter = new Win.WebBrowserAdapter();
         }
 #else
         if (OperatingSystem.IsMacOS())

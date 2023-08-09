@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <MicroComIdl Include="Native/webview.idl" CSharpInteropPath="Native/WebView.Generated.cs" />
+    <MicroComIdl Include="Win/win32.idl" CSharpInteropPath="Win/Win32.Generated.cs" />
   </ItemGroup>
   
   <!-- Windows only group -->
