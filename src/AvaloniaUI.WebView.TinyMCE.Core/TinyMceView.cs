@@ -1,6 +1,6 @@
 #if AVALONIA || WPF
 using System;
-using System.Text.Json;
+using System.Text;
 using AvaloniaUI.WebView.TinyMCE.Core;
 #if WPF
 using IBrush = System.Windows.Media.Brush;
@@ -87,12 +87,9 @@ public partial class TinyMceView
         if (_ignoreChanges) return;
 
         _ignoreChanges = true;
-        var payload = JsonSerializer.Deserialize<JsPayload>(e.Body!);
-        if (payload?.type == "textChanged")
-        {
-            SetCurrentValue(HtmlTextProperty, payload.body);
-            HtmlTextChanged?.Invoke(this, EventArgs.Empty);
-        }
+        var payload = e.Body;
+        SetCurrentValue(HtmlTextProperty, payload);
+        HtmlTextChanged?.Invoke(this, EventArgs.Empty);
 
         _ignoreChanges = false;
     }
@@ -102,8 +99,8 @@ public partial class TinyMceView
         if (_ignoreChanges) return;
 
         _ignoreChanges = true;
-        var payload = JsonSerializer.Serialize(new JsPayload("textChanging", HtmlText ?? ""));
-        await _nativeWebView.InvokeScript($"sendPayload('{JsonEncodedText.Encode(payload)}')");
+        var payload = System.Web.HttpUtility.JavaScriptStringEncode(HtmlText ?? "");
+        await _nativeWebView.InvokeScript($"sendPayload('{payload}')");
         _ignoreChanges = false;
     }
 }

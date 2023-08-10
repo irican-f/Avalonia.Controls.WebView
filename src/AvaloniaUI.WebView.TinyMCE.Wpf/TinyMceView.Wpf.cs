@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -71,7 +70,7 @@ public partial class TinyMceView : ContentControl
 
         var html = HtmlPageBuilder.Build(
             LoadTinyMceStyle(RequestedThemeVariant),
-            JsonEncodedText.Encode(LoadTinyMceContentStyle(RequestedThemeVariant)).ToString(),
+            System.Web.HttpUtility.JavaScriptStringEncode(LoadTinyMceContentStyle(RequestedThemeVariant)).ToString(),
             "Arial",
             (int)FontSize,
             (Background as SolidColorBrush ?? topLevel?.Background as SolidColorBrush)?.Color.ToString(),

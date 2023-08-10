@@ -1,5 +1,3 @@
-using System;
-using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -67,8 +65,7 @@ public partial class TinyMceView : ThemeVariantScope
             LoadTinyMceStyle((PlatformThemeVariant?)ActualThemeVariant == PlatformThemeVariant.Dark ?
                 TinyMceThemeVariant.Dark :
                 TinyMceThemeVariant.Light),
-            JsonEncodedText
-                .Encode(LoadTinyMceContentStyle((PlatformThemeVariant?)ActualThemeVariant == PlatformThemeVariant.Dark ?
+            System.Web.HttpUtility.JavaScriptStringEncode(LoadTinyMceContentStyle((PlatformThemeVariant?)ActualThemeVariant == PlatformThemeVariant.Dark ?
                     TinyMceThemeVariant.Dark :
                     TinyMceThemeVariant.Light)).ToString(),
             "Arial",
