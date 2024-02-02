@@ -11,7 +11,6 @@
         <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AvaloniaUI.WebView.TinyMCE.Avalonia\AvaloniaUI.WebView.TinyMCE.Avalonia.csproj"/>
         <ProjectReference Include="..\..\src\AvaloniaUI.WebView.Avalonia\AvaloniaUI.WebView.Avalonia.csproj"/>
     </ItemGroup>
 
