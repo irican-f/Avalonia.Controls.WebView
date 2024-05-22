@@ -5,10 +5,10 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)"/>
-        <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)"/>
-        <PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)"/>
+        <PackageReference Include="Avalonia" Version="$(AvaloniaSampleVersion)"/>
+        <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaSampleVersion)"/>
+        <PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaSampleVersion)"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaSampleVersion)"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AvaloniaUI.WebView.Avalonia\AvaloniaUI.WebView.Avalonia.csproj"/>
