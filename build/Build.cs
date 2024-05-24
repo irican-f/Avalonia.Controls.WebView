@@ -93,9 +93,11 @@ class Build : NukeBuild
         {
             return RefName;
         }
-        else
+        else if (CiRunNumber is not null)
         {
             return "1.0.999-cibuild" + int.Parse(CiRunNumber).ToString("0000000") + "-alpha";
         }
+
+        return "1.0.999-localbuild-alpha";
     }
 }
