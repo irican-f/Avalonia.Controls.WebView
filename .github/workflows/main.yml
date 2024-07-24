@@ -29,9 +29,12 @@ jobs:
     runs-on: [self-hosted, Linux]
     needs: build
     steps:
+      - name: Clean packages
+        run: rm -rf ${{github.workspace}}/artifacts/packages
       - uses: actions/download-artifact@v4
         with:
           name: packages
+          path: ${{github.workspace}}/artifact
       - name: Publish
         if: github.ref == 'refs/heads/main'
-        run: dotnet nuget push ${{github.workspace}}/**/*.nupkg  --api-key ${{secrets.baget_api_key}} --source http://192.168.122.109:8003/v3/index.json
+        run: dotnet nuget push ${{github.workspace}}/artifact/**/*.nupkg  --api-key ${{secrets.baget_api_key}} --source http://192.168.122.109:8003/v3/index.json
