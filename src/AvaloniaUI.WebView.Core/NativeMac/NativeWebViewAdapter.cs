@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
+using Avalonia.Platform;
 using MicroCom.Runtime;
 
 namespace AvaloniaUI.WebView.NativeMac;
 
+[SupportedOSPlatform("macOS")]
 internal sealed class NativeWebViewAdapter : IWebViewAdapter
 {
     private readonly NativeWebViewCallbacks _callbacks;

@@ -10,9 +10,7 @@ using Microsoft.Web.WebView2.Core;
 
 namespace AvaloniaUI.WebView.Win;
 
-#if NET6_0_OR_GREATER
-[SupportedOSPlatform("windows7.0")]
-#endif
+[SupportedOSPlatform("windows6.1")] // win7
 internal class WebView2Adapter : IWebViewAdapter
 {
     private CoreWebView2Controller? _controller;

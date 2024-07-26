@@ -106,7 +106,8 @@ public class NativeWebView : NativeControlHost, IWebView
         if (OperatingSystemEx.IsMacOS())
         {
             adapter = new NativeWebViewAdapter();
-        } else
+        }
+        else
 #endif
         // if (OperatingSystemEx.IsLinux())
         // {

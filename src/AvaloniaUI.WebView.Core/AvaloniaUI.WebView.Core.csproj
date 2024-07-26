@@ -11,6 +11,9 @@
     <RootNamespace>AvaloniaUI.WebView</RootNamespace>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
     <WarningsAsErrors>$(WarningsAsErrors);CA1420;CA1421;</WarningsAsErrors>
+    <!-- Already included by CsWin32 -->
+    <PolySharpExcludeGeneratedTypes>System.Diagnostics.CodeAnalysis.UnscopedRefAttribute</PolySharpExcludeGeneratedTypes>
+    <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
   </PropertyGroup>
 
   <!-- Common group -->
@@ -35,7 +38,6 @@
   <!-- Windows only group -->
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1901.177" />
-    <!--    <PackageReference Include="Dongle.WindowsSDK.NET" Version="10.0.22621.756"/>-->
   </ItemGroup>
 
   <ItemGroup>

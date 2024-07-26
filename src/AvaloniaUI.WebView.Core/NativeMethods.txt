@@ -1,3 +1,5 @@
 CoCreateInstance
 GetWindowRect
 SetParent
+IWebBrowser
+IWebBrowser2

@@ -1,39 +1,37 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Com;
+using Windows.Win32.System.Variant;
+using Windows.Win32.UI.Shell;
 using Avalonia.Platform;
-using MicroCom.Runtime;
 
 namespace AvaloniaUI.WebView.Win;
 
-#if NET6_0_OR_GREATER
-[SupportedOSPlatform("windows7.0")]
-#endif
+[SupportedOSPlatform("windows5.1.2600")]
 internal unsafe class WebBrowserAdapter : IWebViewAdapter
 {
-    private readonly IWebBrowser2 _webBrowser;
+    private static readonly Guid s_webBrowserGuid = Guid.Parse("8856f961-340a-11d0-a96b-00c04fd705a2");
+    private readonly IWebBrowser2* _webBrowser;
 
     public WebBrowserAdapter()
     {
-        var guid = Guid.Parse("8856f961-340a-11d0-a96b-00c04fd705a2");
-        var unknown = Guid.Parse("00000000-0000-0000-C000-000000000046");
-        void* result;
-        var res = PInvoke.CoCreateInstance(&guid, default, CLSCTX.CLSCTX_INPROC_SERVER, &unknown, &result);
-        if (res != 0)
-            throw new Win32Exception(res);
+        var res = PInvoke.CoCreateInstance(s_webBrowserGuid, null, CLSCTX.CLSCTX_INPROC_SERVER, out IWebBrowser* browser);
+        _ = res.ThrowOnFailure();
 
-        using var browser = MicroComRuntime.CreateProxyFor<IWebBrowser>(result, false);
-        _webBrowser = browser.QueryInterface<IWebBrowser2>();
-        Handle = new IntPtr(result);
+        res = browser->QueryInterface(IWebBrowser2.IID_Guid, out var browser2);
+        _ = res.ThrowOnFailure();
+
+        _ = browser->Release();
+        _webBrowser = (IWebBrowser2*)browser2;
+        Handle = new IntPtr(browser2);
     }
 
     public IntPtr Handle { get; }
-    public string? HandleDescriptor => "HWDN";
+    public string HandleDescriptor => "HWDN";
     public event EventHandler<WebViewNavigationCompletedEventArgs>? NavigationCompleted;
     public event EventHandler<WebViewNavigationStartingEventArgs>? NavigationStarted;
     public event EventHandler<WebMessageReceivedEventArgs>? WebMessageReceived;
@@ -43,13 +41,13 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
 
     public bool GoBack()
     {
-        _webBrowser.GoBack();
+        _webBrowser->GoBack();
         return true;
     }
 
     public bool GoForward()
     {
-        _webBrowser.GoForward();
+        _webBrowser->GoForward();
         return true;
     }
 
@@ -61,33 +59,37 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
     public void Navigate(Uri url)
     {
         var str = Marshal.StringToBSTR(url.AbsoluteUri);
-        int[] arr = [0];
-        fixed (void* p = arr)
+        try
         {
-            _webBrowser.Navigate(str, p, null, null, null);
+            var emptyVar = new VARIANT();
+            _webBrowser->Navigate(new BSTR((char*)str), emptyVar, null, null, null);
         }
-
-        Marshal.FreeBSTR(str);
+        finally
+        {
+            Marshal.FreeBSTR(str);
+        }
     }
 
     public void NavigateToString(string text)
     {
-        throw new NotImplementedException();
+        // I don't want to spend my time on IDispatch
     }
 
     public bool Refresh()
     {
-        throw new NotImplementedException();
+        _webBrowser->Refresh();
+        return true;
     }
 
     public bool Stop()
     {
-        throw new NotImplementedException();
+        _webBrowser->Stop();
+        return true;
     }
 
     public void Dispose()
     {
-        _webBrowser.Dispose();
+        _ = _webBrowser->Release();
     }
 
     public event EventHandler? Initialized;
