@@ -37,18 +37,37 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
     public event EventHandler<WebMessageReceivedEventArgs>? WebMessageReceived;
     public bool CanGoBack => true;
     public bool CanGoForward => true;
-    public Uri Source { get => throw new NotImplementedException(); set => Navigate(value); }
+
+    public Uri Source
+    {
+        get => _webBrowser->LocationURL.ToString() is { Length:> 0 } str ? new Uri(str) : WebViewHelper.EmptyPage;
+        set => Navigate(value);
+    }
 
     public bool GoBack()
     {
-        _webBrowser->GoBack();
-        return true;
+        try
+        {
+            _webBrowser->GoBack();
+            return true;
+        }
+        catch (Exception ex) when (!IsCriticalException(ex))
+        {
+            return false;
+        }
     }
 
     public bool GoForward()
     {
-        _webBrowser->GoForward();
-        return true;
+        try
+        {
+            _webBrowser->GoForward();
+            return true;
+        }
+        catch (Exception ex) when (!IsCriticalException(ex))
+        {
+            return false;
+        }
     }
 
     public Task<string?> InvokeScript(string script)
@@ -61,8 +80,58 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
         var str = Marshal.StringToBSTR(url.AbsoluteUri);
         try
         {
-            var emptyVar = new VARIANT();
-            _webBrowser->Navigate(new BSTR((char*)str), emptyVar, null, null, null);
+            var uriVariant = new VARIANT
+            {
+                Anonymous = new VARIANT._Anonymous_e__Union
+                {
+                    Anonymous = new VARIANT._Anonymous_e__Union._Anonymous_e__Struct
+                    {
+                        vt = VARENUM.VT_BSTR,
+                        Anonymous = new VARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union
+                        {
+                            bstrVal = new BSTR((char*)str)
+                        }
+                    }
+                }
+            };
+
+            var flagsVariant = new VARIANT
+            {
+                Anonymous = new VARIANT._Anonymous_e__Union
+                {
+                    Anonymous = new VARIANT._Anonymous_e__Union._Anonymous_e__Struct
+                    {
+                        vt = VARENUM.VT_BOOL,
+                        Anonymous = new VARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union
+                        {
+                            boolVal = VARIANT_BOOL.VARIANT_FALSE // newWindow = false
+                        }
+                    }
+                }
+            };
+
+            var nullVariant = new VARIANT
+            {
+                Anonymous = new VARIANT._Anonymous_e__Union
+                {
+                    Anonymous = new VARIANT._Anonymous_e__Union._Anonymous_e__Struct
+                    {
+                        vt = VARENUM.VT_NULL
+                    }
+                }
+            };
+
+            _webBrowser->Navigate2(uriVariant, flagsVariant, nullVariant, nullVariant, nullVariant);
+
+        }
+        catch (COMException ce)
+        {
+            if ((uint)unchecked(ce.ErrorCode) != unchecked(0x800704c7))
+            {
+                // "the operation was canceled by the user" - navigation failed
+                // ignore this error, IE has already alerted the user.
+                throw;
+            }
         }
         finally
         {
@@ -77,14 +146,28 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
 
     public bool Refresh()
     {
-        _webBrowser->Refresh();
-        return true;
+        try
+        {
+            _webBrowser->Refresh();
+            return true;
+        }
+        catch (Exception ex) when (!IsCriticalException(ex))
+        {
+            return false;
+        }
     }
 
     public bool Stop()
     {
-        _webBrowser->Stop();
-        return true;
+        try
+        {
+            _webBrowser->Stop();
+            return true;
+        }
+        catch (Exception ex) when (!IsCriticalException(ex))
+        {
+            return false;
+        }
     }
 
     public void Dispose()
@@ -108,4 +191,13 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
 
         _ = PInvoke.SetParent(new HWND(Handle), new HWND(parent.Handle));
     }
+
+    // That's what WinForms uses https://github.com/dotnet/winforms/blob/main/src/System.Private.Windows.Core/src/System/ExceptionExtensions.cs#L12
+    // But we likely always have COMException, but that's an issue for another day. 
+    private static bool IsCriticalException(Exception ex)
+        => ex is NullReferenceException
+            or StackOverflowException
+            or OutOfMemoryException
+            or IndexOutOfRangeException
+            or AccessViolationException;
 }
