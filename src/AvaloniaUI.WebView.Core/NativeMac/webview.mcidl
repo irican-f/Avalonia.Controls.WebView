@@ -30,6 +30,7 @@ interface INativeWebView : IUnknown
     bool Stop();
     HRESULT InvokeScript(IAvnString* script, int id);
     HRESULT ReleaseUnmanaged();
+    bool Focus();
 }
 
 [uuid(e5aca67b-02b7-4129-aa79-d6e417210bba)]
@@ -39,6 +40,8 @@ interface INativeWebViewHandlers : IUnknown
     HRESULT OnWebMessageReceived(IAvnString* body);
     HRESULT OnNavigationCompleted(IAvnString* url, bool success);
     HRESULT OnNavigationStarted(IAvnString* url, bool* cancel);
+    HRESULT BecomeFirstResponder(bool* cancel);
+    HRESULT ResignFirstResponder(bool* cancel);
 }
 
 [uuid(233e094f-9b9f-44a3-9a6e-6948bbdd9fbb)]

@@ -14,7 +14,8 @@
                 <webview:NativeWebView Source="https://avaloniaui.net/"
                                        NavigationCompleted="NativeWebView_OnNavigationCompleted"
                                        NavigationStarted="NativeWebView_OnNavigationStarted"
-                                       WebMessageReceived="NativeWebView_OnWebMessageReceived" />
+                                       WebMessageReceived="NativeWebView_OnWebMessageReceived"
+                                       KeyDown="InputElement_OnKeyDown"/>
                 <TextBox IsReadOnly="True" Grid.Row="1" x:Name="LogList" />
             </Grid>
         </TabItem>

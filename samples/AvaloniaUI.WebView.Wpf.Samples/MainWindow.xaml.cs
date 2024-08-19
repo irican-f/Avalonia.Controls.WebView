@@ -49,5 +49,10 @@ namespace AvaloniaUI.WebView.Wpf.Samples
                 }
             }
         }
+
+        private void WebView_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            LogList.Text += "\r\nWebView_OnKeyDown " + e.Key;
+        }
     }
 }

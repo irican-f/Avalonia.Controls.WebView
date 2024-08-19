@@ -12,6 +12,8 @@
 -(id)initWithHandlers: (INativeWebViewHandlers*) arg;
 -(void)releaseHandlers;
 -(void)onScriptResult:(int)index withResult:(id)result withError:(NSError*)error;
+-(BOOL)becomeFirstResponder;
+-(BOOL)resignFirstResponder;
 @end
 
 NSMutableArray* _handlersArray = [[NSMutableArray alloc] init];
@@ -193,10 +195,41 @@ public:
             return S_OK;
         }
     }
+    
+    virtual bool Focus () override
+    {
+        START_COM_CALL;
+        
+        @autoreleasepool
+        {
+            auto window = [_webView window];
+            if (window)
+            {
+                return [window makeFirstResponder: _webView];
+            }
+            return false;
+        }
+    }
 };
 
 @implementation AvaloniaWKWebView
-
+- (BOOL)acceptsFirstResponder {
+    return true;
+}
+- (BOOL)becomeFirstResponder {
+    auto handlers = (WebViewHandlers*)[self navigationDelegate];
+    if (handlers) {
+        return [handlers becomeFirstResponder];
+    }
+    return [super becomeFirstResponder];
+}
+- (BOOL)resignFirstResponder {
+    auto handlers = (WebViewHandlers*)[self navigationDelegate];
+    if (handlers) {
+        return [handlers resignFirstResponder];
+    }
+    return [super resignFirstResponder];
+}
 @end
 
 
@@ -211,6 +244,22 @@ public:
 - (void)releaseHandlers
 {
     handler = nil;
+}
+- (BOOL)becomeFirstResponder {
+    @autoreleasepool
+    {
+        bool cancel = false;
+        handler->BecomeFirstResponder(&cancel);
+        return !cancel;
+    }
+}
+- (BOOL)resignFirstResponder {
+    @autoreleasepool
+    {
+        bool cancel = false;
+        handler->ResignFirstResponder(&cancel);
+        return !cancel;
+    }
 }
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {

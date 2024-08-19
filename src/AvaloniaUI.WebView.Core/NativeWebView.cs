@@ -1,18 +1,21 @@
 #if AVALONIA || WPF
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AvaloniaUI.WebView.NativeMac;
 using IPlatformHandle = Avalonia.Platform.IPlatformHandle;
 #if WPF
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using NativeControlHost = AvaloniaUI.Xpf.WpfAbstractions.NativeControlHost;
+using AvaloniaUI.Xpf.WpfAbstractions;
 #elif AVALONIA
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Avalonia.Input;
 #endif
 
 namespace AvaloniaUI.WebView;
@@ -35,6 +38,15 @@ public class NativeWebView : NativeControlHost, IWebView
     public static readonly StyledProperty<Uri> SourceProperty = AvaloniaProperty.Register<NativeWebView, Uri>(
         nameof(Source), new Uri("about:blank"));
 #endif
+
+    static NativeWebView()
+    {
+#if WPF
+        FocusableProperty.OverrideMetadata(typeof(NativeWebView), new UIPropertyMetadata(true));
+#elif AVALONIA
+        FocusableProperty.OverrideDefaultValue<NativeWebView>(true);
+#endif
+    }
 
     public NativeWebView()
     {
@@ -187,6 +199,28 @@ public class NativeWebView : NativeControlHost, IWebView
         }
     }
 
+    private void WithFocusOnGotFocus(object sender, CancelEventArgs e)
+    {
+#if WPF
+        var focusScope = FocusManager.GetFocusScope(this);
+        if (FocusManager.GetFocusedElement(focusScope) != this)
+        {
+            FocusManager.SetFocusedElement(focusScope, this);
+        }
+#elif AVALONIA
+        var focusManager = TopLevel.GetTopLevel(this)?.FocusManager;
+        if (focusManager != this)
+        {
+            Focus();
+        }
+#endif
+    }
+
+    private void WithFocusOnLostFocus(object sender, CancelEventArgs e)
+    {
+        // no-op?
+    }
+
     private void WebViewAdapterOnInitialized(object? sender, EventArgs e)
     {
         var adapter = (IWebViewAdapter)sender!;
@@ -194,6 +228,11 @@ public class NativeWebView : NativeControlHost, IWebView
         adapter.NavigationStarted += WebViewAdapterOnNavigationStarted;
         adapter.NavigationCompleted += WebViewAdapterOnNavigationCompleted;
         adapter.WebMessageReceived += WebViewAdapterOnWebMessageReceived;
+        if (adapter is IWebViewAdapterWithFocus withFocus)
+        {
+            withFocus.LostFocus += WithFocusOnLostFocus;
+            withFocus.GotFocus += WithFocusOnGotFocus;
+        }
 
         _webViewReadyCompletion.TrySetResult(adapter);
 
@@ -261,6 +300,16 @@ public class NativeWebView : NativeControlHost, IWebView
     }
 #endif
 
+#if WPF
+    protected override void OnGotFocus(RoutedEventArgs e)
+#elif AVALONIA
+    protected override void OnGotFocus(GotFocusEventArgs e)
+#endif
+    {
+        base.OnGotFocus(e);
+        e.Handled = (TryGetAdapter() as IWebViewAdapterWithFocus)?.Focus() ?? false;
+    }
+
     protected override void DestroyNativeControlCore(IPlatformHandle control)
     {
         if (control is IWebViewAdapter adapter)
@@ -279,6 +328,11 @@ public class NativeWebView : NativeControlHost, IWebView
             adapter.NavigationCompleted -= WebViewAdapterOnNavigationCompleted;
             adapter.WebMessageReceived -= WebViewAdapterOnWebMessageReceived;
             adapter.Initialized -= WebViewAdapterOnInitialized;
+            if (adapter is IWebViewAdapterWithFocus withFocus)
+            {
+                withFocus.LostFocus -= WithFocusOnLostFocus;
+                withFocus.GotFocus -= WithFocusOnGotFocus;
+            }
             adapter.Dispose();
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia.Platform;
 
@@ -126,4 +127,11 @@ internal interface IWebViewAdapter : IWebView, IDisposable, IPlatformHandle
     void SizeChanged();
 
     void SetParent(IPlatformHandle parent);
+}
+
+internal interface IWebViewAdapterWithFocus : IWebViewAdapter
+{
+    bool Focus();
+    event EventHandler<CancelEventArgs>? GotFocus;
+    event EventHandler<CancelEventArgs>? LostFocus;
 }

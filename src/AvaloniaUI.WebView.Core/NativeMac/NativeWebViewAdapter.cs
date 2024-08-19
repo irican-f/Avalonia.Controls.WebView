@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ using MicroCom.Runtime;
 namespace AvaloniaUI.WebView.NativeMac;
 
 [SupportedOSPlatform("macOS")]
-internal sealed class NativeWebViewAdapter : IWebViewAdapter
+internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus
 {
     private readonly NativeWebViewCallbacks _callbacks;
     private readonly INativeWebView _nativeWebView;
@@ -36,6 +37,8 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
     public event EventHandler<WebViewNavigationCompletedEventArgs>? NavigationCompleted;
     public event EventHandler<WebViewNavigationStartingEventArgs>? NavigationStarted;
     public event EventHandler<WebMessageReceivedEventArgs>? WebMessageReceived;
+    public event EventHandler<CancelEventArgs>? GotFocus;
+    public event EventHandler<CancelEventArgs>? LostFocus;
     public bool CanGoBack => _nativeWebView.CanGoBack == 1;
     public bool CanGoForward => _nativeWebView.CanGoForward == 1;
 
@@ -112,6 +115,8 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
         // macOS control don't need to be explicitly parented
     }
 
+    public bool Focus() => _nativeWebView.Focus() == 1;
+
     [DllImport("libWebView")]
     private static extern IntPtr CreateWebViewNativeFactory();
 
@@ -145,6 +150,20 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
     private void OnWebMessageReceived(string body)
     {
         WebMessageReceived?.Invoke(this, new WebMessageReceivedEventArgs { Body = body });
+    }
+
+    private bool OnLostFocus()
+    {
+        var args = new CancelEventArgs();
+        LostFocus?.Invoke(this, args);
+        return args.Cancel;
+    }
+
+    private bool OnGotFocus()
+    {
+        var args = new CancelEventArgs();
+        GotFocus?.Invoke(this, args);
+        return args.Cancel;
     }
 
     private void CurrentDomainOnProcessExit(object? sender, EventArgs e)
@@ -184,6 +203,16 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapter
             {
                 *cancel = adapter.OnNavigationStarted(url.String!) ? 1 : 0;
             }
+        }
+
+        public unsafe void BecomeFirstResponder(int* handled)
+        {
+            *handled = adapter.OnGotFocus() ? 1 : 0;
+        }
+
+        public unsafe void ResignFirstResponder(int* handled)
+        {
+            *handled = adapter.OnLostFocus() ? 1 : 0;
         }
     }
 }

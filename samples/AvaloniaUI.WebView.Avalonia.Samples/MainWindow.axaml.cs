@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 
 namespace AvaloniaUI.WebView.Avalonia.Samples;
 
@@ -24,5 +25,10 @@ public partial class MainWindow : Window
     private void NativeWebView_OnWebMessageReceived(object? sender, WebMessageReceivedEventArgs e)
     {
         LogList.Text += "\r\nNativeWebView_OnWebMessageReceived " + e.Body;
+    }
+
+    private void InputElement_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        LogList.Text += "\r\nInputElement_OnKeyDown " + e.Key;
     }
 }
