@@ -21,15 +21,15 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus
     {
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
-            using var factory = MicroComRuntime.CreateProxyFor<IWebViewFactory>(CreateWebViewNativeFactory(), true);
+            using var factory = NativeBootstrap.CreateWebViewNativeFactory();
             factory.InvalidateAllManagedReferences();
         };
     }
 
     public NativeWebViewAdapter()
     {
-        using var factory = MicroComRuntime.CreateProxyFor<IWebViewFactory>(CreateWebViewNativeFactory(), true);
         _callbacks = new NativeWebViewCallbacks(this);
+        using var factory = NativeBootstrap.CreateWebViewNativeFactory();
         _nativeWebView = factory.CreateWebView(_callbacks);
         AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
     }
@@ -116,9 +116,6 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus
     }
 
     public bool Focus() => _nativeWebView.Focus() == 1;
-
-    [DllImport("libWebView")]
-    private static extern IntPtr CreateWebViewNativeFactory();
 
     private void OnScriptResult(int id, bool isError, string? result)
     {
