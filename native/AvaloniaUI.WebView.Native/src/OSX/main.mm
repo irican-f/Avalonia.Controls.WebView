@@ -262,7 +262,8 @@ public:
             if (modifier & NSEventModifierFlagControl
                 || modifier & NSEventModifierFlagShift
                 || modifier & NSEventModifierFlagOption
-                || modifier & NSEventModifierFlagCommand)
+                || modifier & NSEventModifierFlagCommand
+                || modifier & NSEventModifierFlagFunction)
             {
                 auto avView = [[self superview] superview];
                 if ([theEvent type] == NSEventTypeKeyDown)
