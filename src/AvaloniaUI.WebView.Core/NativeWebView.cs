@@ -1,15 +1,17 @@
 #if AVALONIA || WPF
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AvaloniaUI.WebView.NativeMac;
 using IPlatformHandle = Avalonia.Platform.IPlatformHandle;
 #if WPF
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using NativeControlHost = AvaloniaUI.Xpf.WpfAbstractions.NativeControlHost;
-using AvaloniaUI.Xpf.WpfAbstractions;
 #elif AVALONIA
 using Avalonia;
 using Avalonia.Controls;
@@ -206,13 +208,7 @@ public class NativeWebView : NativeControlHost, IWebView
         try
         {
 #if WPF
-            if (Window.GetWindow(this) is { } wpfWindow
-                && XpfWpfAbstraction.GetAvaloniaWindowForWindow(wpfWindow) is { } avWindow)
-            {
-                // Ideally, we should search for XpfHost.
-                avWindow.Focus();
-            }
-
+            (s_getXpfHostDelegate(this) as Avalonia.Input.IInputElement)?.Focus();
             Keyboard.Focus(this);
 #elif AVALONIA
             var focusManager = TopLevel.GetTopLevel(this)?.FocusManager;
@@ -235,20 +231,13 @@ public class NativeWebView : NativeControlHost, IWebView
 
     private void WithInputOnInput(Avalonia.Interactivity.RoutedEventArgs obj)
     {
-        Avalonia.Input.IInputElement element;
+        Avalonia.Input.IInputElement? element;
 #if AVALONIA
         element = this;
 #elif WPF
-        var window = Window.GetWindow(this)!;
-        var avWindow = XpfWpfAbstraction.GetAvaloniaWindowForWindow(window);
-        if (avWindow is null)
-        {
-            return;
-        }
-
-        element = avWindow.FocusManager?.GetFocusedElement() ?? avWindow;
+        element = s_getXpfHostDelegate(this) as Avalonia.Input.IInputElement;
 #endif
-        element.RaiseEvent(obj);
+        element?.RaiseEvent(obj);
     }
 
     private void WebViewAdapterOnInitialized(object? sender, EventArgs e)
@@ -431,6 +420,25 @@ public class NativeWebView : NativeControlHost, IWebView
 
         return _reparentingScope = new ReparentingScope(this, true);
     }
+
+#if WPF
+    private static readonly Func<Visual?, object?> s_getXpfHostDelegate = GetXpfHostDelegate();
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods, "Atlantis.AtlantisPresentationCoreExtensions", "PresentationCore")]
+    private static Func<Visual?, object?> GetXpfHostDelegate()
+    {
+        var members = Type.GetType("Atlantis.AtlantisPresentationCoreExtensions, PresentationCore", false)
+            ?.FindMembers(
+                MemberTypes.Method,
+                BindingFlags.Public | BindingFlags.Static,
+                static (m, _) => m.Name == "GetXpfHost" && ((MethodInfo)m).GetParameters().Length == 1,
+                null);
+        if (members?.Length == 1)
+        {
+            return (Func<Visual?, object?>)Delegate.CreateDelegate(typeof(Func<Visual?, object?>), null, (MethodInfo)members[0]);
+        }
+        return _ => null;
+    }
+#endif
 
     private sealed class ReparentingScope(NativeWebView webView, bool yieldOnLayoutBeforeExiting) : IDisposable, IAsyncDisposable
     {
