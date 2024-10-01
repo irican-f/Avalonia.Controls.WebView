@@ -57,15 +57,12 @@ public:
             [_handlersArray removeObject: _handlersWrapper];
             
             _handlersWrapper = nullptr;
-            if (NSThread.isMainThread)
+            if (_webView.superview != nullptr)
             {
-                if (_webView.superview != nullptr)
-                {
-                    [_webView removeFromSuperview];
-                }
-
-                _webView.navigationDelegate = nullptr;
+                [_webView removeFromSuperview];
             }
+
+            _webView.navigationDelegate = nullptr;
             _webView = nullptr;
             return S_OK;
         }

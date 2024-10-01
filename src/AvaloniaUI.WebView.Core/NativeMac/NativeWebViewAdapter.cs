@@ -19,7 +19,7 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus, IWebViewA
 
     static NativeWebViewAdapter()
     {
-        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        Dispatcher.UIThread.ShutdownStarted += (_, __) =>
         {
             using var factory = NativeBootstrap.CreateWebViewNativeFactory();
             factory.InvalidateAllManagedReferences();
@@ -31,7 +31,6 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus, IWebViewA
         _callbacks = new NativeWebViewCallbacks(this);
         using var factory = NativeBootstrap.CreateWebViewNativeFactory();
         _nativeWebView = factory.CreateWebView(_callbacks);
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
     }
 
     public event EventHandler<WebViewNavigationCompletedEventArgs>? NavigationCompleted;
@@ -100,7 +99,6 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus, IWebViewA
 
     public void Dispose()
     {
-        AppDomain.CurrentDomain.ProcessExit -= CurrentDomainOnProcessExit;
         _nativeWebView.ReleaseUnmanaged();
         _nativeWebView.Dispose();
         _callbacks.Dispose();
@@ -165,11 +163,6 @@ internal sealed class NativeWebViewAdapter : IWebViewAdapterWithFocus, IWebViewA
     private void OnInput(RoutedEventArgs args)
     {
         Input?.Invoke(args);
-    }
-
-    private void CurrentDomainOnProcessExit(object? sender, EventArgs e)
-    {
-        Dispose();
     }
 
     private class NativeWebViewCallbacks(NativeWebViewAdapter adapter) : CallbackBase, INativeWebViewHandlers
