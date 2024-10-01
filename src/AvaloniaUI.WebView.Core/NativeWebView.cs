@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using AvaloniaUI.WebView.Macios;
 using AvaloniaUI.WebView.NativeMac;
 using IPlatformHandle = Avalonia.Platform.IPlatformHandle;
 #if WPF
@@ -123,9 +124,9 @@ public class NativeWebView : NativeControlHost, IWebView
         IWebViewAdapter? adapter = null;
 
 #if !NETFRAMEWORK
-        if (OperatingSystemEx.IsMacOS())
+        if (OperatingSystemEx.IsMacOS() || OperatingSystemEx.IsIOS())
         {
-            adapter = new NativeWebViewAdapter();
+            adapter = new MaciosWebViewAdapter();
         }
         else
 #endif
