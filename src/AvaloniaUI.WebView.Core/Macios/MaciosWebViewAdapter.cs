@@ -16,6 +16,7 @@ namespace AvaloniaUI.WebView.Macios;
 public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWithInputRedirect
 {
     private const string PostAvWebViewMessageName = "postAvWebViewMessage";
+    private static readonly NSString s_postAvWebViewMessageName = NSString.Create(PostAvWebViewMessageName);
 
     private readonly WKWebViewConfiguration _config;
     private readonly WKWebView _webView;
@@ -28,7 +29,7 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
         _scriptHandler.DidReceiveScriptMessage += OnScriptHandlerOnDidReceiveScriptMessage;
 
         _config = new WKWebViewConfiguration { JavaScriptEnabled = true };
-        _config.AddScriptMessageHandler(_scriptHandler, PostAvWebViewMessageName);
+        _config.AddScriptMessageHandler(_scriptHandler, s_postAvWebViewMessageName);
 
         if (AvaloniaLocator.Current.GetService<WebViewOptions>()?.EnableDevTools == true)
         {
@@ -41,11 +42,14 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
 
         _webView = new WKWebView(_config) { NavigationDelegate = _navDelegate };
         _webView.PerformKeyEquivalent += WebViewOnPerformKeyEquivalent;
-        _webView.BecomeFirstResponder += (_, _) => GotFocus?.Invoke(this, EventArgs.Empty);
-        _webView.ResignFirstResponder += (_, _) => LostFocus?.Invoke(this, EventArgs.Empty);
+        _webView.BecomeFirstResponder += OnWebViewOnBecomeFirstResponder;
+        _webView.ResignFirstResponder += OnWebViewOnResignFirstResponder;
+
+        Handle = _webView.Retain();
+        _webView.UnsafeDisown();
     }
 
-    public IntPtr Handle => _webView.Handle;
+    public IntPtr Handle { get; }
     public string HandleDescriptor => OperatingSystemEx.IsMacOS() ? "NSView" : "UIView";
     public bool IsInitialized => true;
     public event EventHandler? Initialized;
@@ -78,9 +82,7 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
 
     public void Navigate(Uri url)
     {
-        using var nsStr = NSString.Create(url.ToString());
-        using var nsUrl = new NSUrl(nsStr);
-        using var request = new NSURLRequest(nsUrl);
+        using var request = NSURLRequest.FromUri(url);
         _ = _webView.LoadRequest(request);
     }
 
@@ -102,10 +104,26 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
 
     public void Dispose()
     {
+        _webView.RemoveFromSuperview();
+
+        _scriptHandler.DidReceiveScriptMessage -= OnScriptHandlerOnDidReceiveScriptMessage;
+        _navDelegate.DidFinishNavigation -= OnDelegateOnDidFinishNavigation;
+        _navDelegate.DecidePolicyNavigation -= OnDelegateOnDecidePolicyNavigation;
+        _webView.PerformKeyEquivalent -= WebViewOnPerformKeyEquivalent;
+        _webView.BecomeFirstResponder -= OnWebViewOnBecomeFirstResponder;
+        _webView.ResignFirstResponder -= OnWebViewOnResignFirstResponder;
+
+        _config.RemoveScriptMessageHandler(s_postAvWebViewMessageName);
         _webView.NavigationDelegate = null;
-        _webView.Dispose();
-        _config.Dispose();
+        _webView.LoadRequest(null);
+
+        _scriptHandler.Dispose();
         _navDelegate.Dispose();
+        _config.Dispose();
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _webView.Dispose();
+        }, DispatcherPriority.Background);
     }
 
     public void SizeChanged()
@@ -118,17 +136,11 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
         // macOS control don't need to be explicitly parented
     }
 
-    public bool Focus()
-    {
-        return OperatingSystemEx.IsMacOS() && _webView.MakeFirstResponder();
-    }
+    public bool Focus() => OperatingSystemEx.IsMacOS() && _webView.MakeFirstResponder();
 
-    public bool ResignFocus()
-    {
-        return OperatingSystemEx.IsMacOS() && _webView.RemoveFirstResponder();
-    }
+    public bool ResignFocus() => OperatingSystemEx.IsMacOS() && _webView.RemoveFirstResponder();
 
-    private void OnScriptHandlerOnDidReceiveScriptMessage(object sender, WKScriptMessageHandler.ScriptMessageEventArgs args)
+    private void OnScriptHandlerOnDidReceiveScriptMessage(object? sender, WKScriptMessageHandler.ScriptMessageEventArgs args)
     {
         if (args.Name == PostAvWebViewMessageName)
         {
@@ -136,19 +148,29 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
         }
     }
 
-    private void OnDelegateOnDecidePolicyNavigation(object _, WKNavigationDelegate.DecidePolicyNavigationEventArgs args)
+    private void OnDelegateOnDecidePolicyNavigation(object? _, WKNavigationDelegate.DecidePolicyNavigationEventArgs args)
     {
         var startedArgs = new WebViewNavigationStartingEventArgs { Request = args.Request };
         NavigationStarted?.Invoke(this, startedArgs);
         args.Cancel = startedArgs.Cancel;
     }
 
-    private async void OnDelegateOnDidFinishNavigation(object sender, EventArgs args)
+    private async void OnDelegateOnDidFinishNavigation(object? sender, EventArgs args)
     {
         _ = await InvokeScript($"function invokeCSharpAction(data){{window.webkit.messageHandlers.{PostAvWebViewMessageName}.postMessage(data);}}");
 
-        using var url = _webView!.Url;
+        using var url = _webView.Url;
         NavigationCompleted?.Invoke(this, new WebViewNavigationCompletedEventArgs { Request = Uri.TryCreate(url.AbsoluteString, UriKind.Absolute, out var uri) ? uri : null, IsSuccess = true });
+    }
+
+    private void OnWebViewOnResignFirstResponder(object? o, EventArgs eventArgs)
+    {
+        LostFocus?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnWebViewOnBecomeFirstResponder(object? o, EventArgs eventArgs)
+    {
+        GotFocus?.Invoke(this, EventArgs.Empty);
     }
 
     private void WebViewOnPerformKeyEquivalent(object? sender, AppleView.PerformKeyEquivalentEventArgs e)

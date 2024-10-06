@@ -16,19 +16,25 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
     private static readonly IntPtr s_retainCountSel = Libobjc.sel_getUid("retainCount");
     private static readonly IntPtr s_conformsToProtocol = Libobjc.sel_getUid("conformsToProtocol:");
 
-    private readonly bool _owns;
+    private bool _owns;
     private readonly IntPtr _class;
     private unsafe ObjcSuper* _superRef;
 
+    private const bool RetainIfNotOwned = false;
+
     protected NSObject(IntPtr handle, bool owns)
     {
+        if (handle == default)
+            throw new ArgumentNullException(nameof(handle));
+
         Handle = handle;
         _class = Libobjc.object_getClass(handle);
-        _owns = owns;
-        if (!owns)
+        if (!owns && RetainIfNotOwned)
         {
-            Libobjc.void_objc_msgSend(Handle, s_retainSel);
+            owns = true;
+            Retain();
         }
+        _owns = owns;
     }
 
     protected NSObject(IntPtr classHandle) : this(Libobjc.intptr_objc_msgSend(classHandle, s_allocSel), true)
@@ -42,6 +48,9 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
         => AllocateClassPair(s_class, className);
     public static IntPtr AllocateClassPair(IntPtr superclass, string className)
         => Libobjc.objc_allocateClassPair(superclass, className, 0);
+
+    public IntPtr Retain() => Libobjc.intptr_objc_msgSend(Handle, s_retainSel);
+    public int RetainCount() => Libobjc.int_objc_msgSend(Handle, s_retainCountSel);
 
     protected void Init()
     {
@@ -83,15 +92,28 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
         return new IntPtr((long)baseHandle + (long)Libobjc.ivar_getOffset(ivar));
     }
 
+    internal void UnsafeDisown()
+    {
+        _owns = false;
+    }
+
     private unsafe void ReleaseUnmanagedResources(bool disposing)
     {
+        if (!_owns && _superRef == default)
+            return;
+
 #if DEBUG
         Console.WriteLine($"Disposing ({disposing}): {GetType()}");
 #endif
-        Libobjc.void_objc_msgSend(Handle, s_releaseSel);
-        if (_superRef != default)
+
+        // if (_superRef != default)
+        // {
+        //     Marshal.Release(new IntPtr(_superRef));
+        // }
+
+        if (_owns)
         {
-            Marshal.Release(new IntPtr(_superRef));
+            Libobjc.void_objc_msgSend(Handle, s_releaseSel);
         }
     }
 

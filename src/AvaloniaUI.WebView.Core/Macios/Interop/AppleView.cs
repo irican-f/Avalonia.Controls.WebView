@@ -17,6 +17,20 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
     private static readonly void* s_becomeFirstResponder = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr, int>)&OnBecomeFirstResponder;
     private static readonly void* s_resignFirstResponder = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr, int>)&OnResignFirstResponder;
 
+    private static readonly IntPtr s_copy = Libobjc.sel_getUid("copy:");
+    private static readonly IntPtr s_paste = Libobjc.sel_getUid("paste:");
+    private static readonly IntPtr s_cut = Libobjc.sel_getUid("cut:");
+    private static readonly IntPtr s_selectAll = Libobjc.sel_getUid("selectAll:");
+    private static readonly IntPtr s_undoManager = Libobjc.sel_getUid("undoManager");
+    private static readonly IntPtr s_undoManagerRedo = Libobjc.sel_getUid("redo");
+    private static readonly IntPtr s_undoManagerUndo = Libobjc.sel_getUid("undo");
+
+    private static readonly IntPtr s_superview = Libobjc.sel_getUid("superview");
+    private static readonly IntPtr s_window = Libobjc.sel_getUid("window");
+    private static readonly IntPtr s_windowMakeFirstResponder = Libobjc.sel_getUid("makeFirstResponder:");
+    private static readonly IntPtr s_windowFirstResponder = Libobjc.sel_getUid("firstResponder");
+    private static readonly IntPtr s_removeFromSuperview = Libobjc.sel_getUid("removeFromSuperview");
+
     protected static void RegisterMethods(IntPtr thisClass)
     {
         var performKeyEquivalentSel = Libobjc.sel_getUid("performKeyEquivalent:");
@@ -63,14 +77,6 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
         }
     }
 
-    private static readonly IntPtr s_copy = Libobjc.sel_getUid("copy:");
-    private static readonly IntPtr s_paste = Libobjc.sel_getUid("paste:");
-    private static readonly IntPtr s_cut = Libobjc.sel_getUid("cut:");
-    private static readonly IntPtr s_selectAll = Libobjc.sel_getUid("selectAll:");
-    private static readonly IntPtr s_undoManager = Libobjc.sel_getUid("undoManager");
-    private static readonly IntPtr s_undoManagerRedo = Libobjc.sel_getUid("redo");
-    private static readonly IntPtr s_undoManagerUndo = Libobjc.sel_getUid("undo");
-
     public void Copy() => Libobjc.void_objc_msgSend(Handle, s_copy);
     public void Paste() => Libobjc.void_objc_msgSend(Handle, s_paste);
     public void Cut() => Libobjc.void_objc_msgSend(Handle, s_cut);
@@ -89,11 +95,6 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
         Libobjc.void_objc_msgSend(undoManagerPtr, s_undoManagerRedo);
         return true;
     }
-
-    private static readonly IntPtr s_superview = Libobjc.sel_getUid("superview");
-    private static readonly IntPtr s_window = Libobjc.sel_getUid("window");
-    private static readonly IntPtr s_windowMakeFirstResponder = Libobjc.sel_getUid("makeFirstResponder:");
-    private static readonly IntPtr s_windowFirstResponder = Libobjc.sel_getUid("firstResponder");
 
     [SupportedOSPlatform("macos")]
     public bool MakeFirstResponder()
@@ -124,6 +125,8 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
         return false;
     }
 
+    public void RemoveFromSuperview() => Libobjc.void_objc_msgSend(Handle, s_removeFromSuperview);
+    
     public class PerformKeyEquivalentEventArgs : HandledEventArgs
     {
         public NSEvent Event { get; init; }

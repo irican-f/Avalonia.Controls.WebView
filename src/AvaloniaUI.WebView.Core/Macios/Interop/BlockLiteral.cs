@@ -30,7 +30,7 @@ internal ref struct BlockLiteral(IntPtr invoke)
         {
             if (block_class == IntPtr.Zero)
             {
-                block_class = Libobjc.dlsym (Libobjc.LinkLibSystem(), "_NSConcreteStackBlock"); // _NSConcreteGlobalBlock
+                block_class = Libobjc.dlsym (Libobjc.LinkLibSystem(), "_NSConcreteGlobalBlock"); // _NSConcreteGlobalBlock
             }
             return block_class;
         }

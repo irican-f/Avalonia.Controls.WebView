@@ -26,7 +26,7 @@ internal unsafe class NSManagedObjectBase<TSelf> : NSObject
 
     private void WriteManagedSelf()
     {
-        _managedHandle = GCHandle.Alloc(this);
+        _managedHandle = GCHandle.Alloc(this, GCHandleType.Weak);
         _ = SetIvarValue("_managedSelf", GCHandle.ToIntPtr(_managedHandle));
     }
 
@@ -36,5 +36,15 @@ internal unsafe class NSManagedObjectBase<TSelf> : NSObject
         return managedHandle == default ?
             null :
             GCHandle.FromIntPtr(managedHandle).Target as TSelf;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (disposing)
+        {
+            if (_managedHandle.IsAllocated)
+                _managedHandle.Free();
+        }
     }
 }

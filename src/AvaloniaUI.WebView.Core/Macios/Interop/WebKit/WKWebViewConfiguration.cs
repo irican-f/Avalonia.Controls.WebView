@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace AppleInterop.WebKit;
 
@@ -11,8 +10,7 @@ internal class WKWebViewConfiguration : NSObject
 
     private static readonly IntPtr s_userContentController = Libobjc.sel_getUid("userContentController");
     private static readonly IntPtr s_contentAddScriptMessageHandler = Libobjc.sel_getUid("addScriptMessageHandler:name:");
-
-    private readonly Dictionary<NSString, WKScriptMessageHandler> _handlers = [];
+    private static readonly IntPtr s_contentRemoveScriptMessageHandlerForName = Libobjc.sel_getUid("removeScriptMessageHandlerForName:");
 
     public WKWebViewConfiguration() : base(s_class)
     {
@@ -28,22 +26,16 @@ internal class WKWebViewConfiguration : NSObject
         }
     }
 
-    public void AddScriptMessageHandler(WKScriptMessageHandler scriptHandler, string postAvWebViewMessageName)
+    public void AddScriptMessageHandler(WKScriptMessageHandler scriptHandler, NSString handlerName)
     {
-        var str = NSString.Create(postAvWebViewMessageName);
         var controllerPtr = Libobjc.intptr_objc_msgSend(Handle, s_userContentController);
-        _handlers.Add(str, scriptHandler); // root these objects
-        Libobjc.void_objc_msgSend(controllerPtr, s_contentAddScriptMessageHandler, scriptHandler.Handle, str.Handle);
+        Libobjc.void_objc_msgSend(controllerPtr, s_contentAddScriptMessageHandler, scriptHandler.Handle, handlerName.Handle);
     }
 
-    protected override void Dispose(bool disposing)
+    public void RemoveScriptMessageHandler(NSString handlerName)
     {
-        foreach (var key in _handlers.Keys)
-        {
-            key.Dispose();
-        }
-        _handlers.Clear();
-        base.Dispose(disposing);
+        var controllerPtr = Libobjc.intptr_objc_msgSend(Handle, s_userContentController);
+        Libobjc.void_objc_msgSend(controllerPtr, s_contentRemoveScriptMessageHandlerForName, handlerName.Handle);
     }
 
     public void EnableDeveloperExtras()

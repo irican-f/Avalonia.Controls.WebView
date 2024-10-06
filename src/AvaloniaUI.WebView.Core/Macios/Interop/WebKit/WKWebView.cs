@@ -41,10 +41,6 @@ internal class WKWebView : AppleView
         s_webViewClass = webViewClass;
     }
 
-    public WKWebView(IntPtr handle, bool owns) : base(handle, owns)
-    {
-    }
-
     public WKWebView(WKWebViewConfiguration configuration) : base(s_webViewClass)
     {
         _ = Libobjc.intptr_objc_msgSend(Handle, s_initWithFrame, new CGRect(), configuration.Handle);
@@ -68,10 +64,17 @@ internal class WKWebView : AppleView
     public IntPtr Reload() => Libobjc.intptr_objc_msgSend(Handle, s_reload);
     public void StopLoading() => Libobjc.void_objc_msgSend(Handle, s_stopLoading);
 
-    public IntPtr LoadRequest(NSURLRequest request) => Libobjc.intptr_objc_msgSend(Handle, s_loadRequest, request.Handle);
+    public IntPtr LoadRequest(NSURLRequest? request)
+    {
+        var result = Libobjc.intptr_objc_msgSend(Handle, s_loadRequest, request?.Handle ?? default);
+        return result;
+    }
 
-    public IntPtr LoadHtmlString(NSString htmlString, NSUrl baseUrl) =>
-        Libobjc.intptr_objc_msgSend(Handle, s_loadHTMLString, htmlString.Handle, baseUrl.Handle);
+    public IntPtr LoadHtmlString(NSString htmlString, NSUrl baseUrl)
+    {
+        var result = Libobjc.intptr_objc_msgSend(Handle, s_loadHTMLString, htmlString.Handle, baseUrl.Handle);
+        return result;
+    }
 
     public async Task<string?> EvaluateJavaScriptAsync(string script)
     {

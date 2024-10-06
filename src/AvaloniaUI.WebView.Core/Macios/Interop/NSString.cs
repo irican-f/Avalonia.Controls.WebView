@@ -30,7 +30,7 @@ internal class NSString : NSObject
                 s_class,
                 s_stringWithCharacters,
                 (IntPtr)ptr,
-                new IntPtr((uint)value.Length)), true);
+                new IntPtr((uint)value.Length)), false);
         }
     }
 
