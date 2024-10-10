@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeWebViewTest", "sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUI.WebView.Avalonia.Samples.Desktop", "samples\AvaloniaUI.WebView.Avalonia.Samples.Desktop\AvaloniaUI.WebView.Avalonia.Samples.Desktop.csproj", "{8C53D64F-EDF9-44B8-AFCE-755D740B0BC5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUI.WebView.Avalonia.Samples.iOS", "samples\AvaloniaUI.WebView.Avalonia.Samples.iOS\AvaloniaUI.WebView.Avalonia.Samples.iOS.csproj", "{D2E727CB-5348-4951-882F-40A14B431896}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -137,6 +139,18 @@ Global
 		{8C53D64F-EDF9-44B8-AFCE-755D740B0BC5}.Release|x64.Build.0 = Release|Any CPU
 		{8C53D64F-EDF9-44B8-AFCE-755D740B0BC5}.Release|x86.ActiveCfg = Release|Any CPU
 		{8C53D64F-EDF9-44B8-AFCE-755D740B0BC5}.Release|x86.Build.0 = Release|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Debug|x64.Build.0 = Debug|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Debug|x86.Build.0 = Debug|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Release|x64.ActiveCfg = Release|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Release|x64.Build.0 = Release|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Release|x86.ActiveCfg = Release|Any CPU
+		{D2E727CB-5348-4951-882F-40A14B431896}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +163,7 @@ Global
 		{DCB2CBB3-78DB-470F-8DF6-C2BC00772F5D} = {56C66E2C-AFED-48A1-B738-B63E241DCDB2}
 		{CDC9E189-A8BE-4F29-8F85-21A4E358ADDD} = {DDB4C7B6-F4A1-4E5C-9306-D0DC34518721}
 		{8C53D64F-EDF9-44B8-AFCE-755D740B0BC5} = {DDB4C7B6-F4A1-4E5C-9306-D0DC34518721}
+		{D2E727CB-5348-4951-882F-40A14B431896} = {DDB4C7B6-F4A1-4E5C-9306-D0DC34518721}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {50B7605D-5AAC-492F-A704-B6D6448E2F25}

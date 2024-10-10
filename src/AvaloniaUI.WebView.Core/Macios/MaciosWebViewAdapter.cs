@@ -31,7 +31,8 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
         _config = new WKWebViewConfiguration { JavaScriptEnabled = true };
         _config.AddScriptMessageHandler(_scriptHandler, s_postAvWebViewMessageName);
 
-        if (AvaloniaLocator.Current.GetService<WebViewOptions>()?.EnableDevTools == true)
+        var enableDevTools = AvaloniaLocator.Current.GetService<WebViewOptions>()?.EnableDevTools == true;
+        if (enableDevTools)
         {
             _config.EnableDeveloperExtras();
         }
@@ -44,6 +45,16 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
         _webView.PerformKeyEquivalent += WebViewOnPerformKeyEquivalent;
         _webView.BecomeFirstResponder += OnWebViewOnBecomeFirstResponder;
         _webView.ResignFirstResponder += OnWebViewOnResignFirstResponder;
+
+        if (OperatingSystemEx.IsIOS() && enableDevTools)
+        {
+            using var key = NSString.Create("inspectable");
+            Libobjc.void_objc_msgSend(
+                _webView.Handle,
+                Libobjc.sel_getUid("setValue:forKey:"),
+                NSNumber.Yes.Handle,
+                key.Handle);
+        }
 
         Handle = _webView.Retain();
         _webView.UnsafeDisown();

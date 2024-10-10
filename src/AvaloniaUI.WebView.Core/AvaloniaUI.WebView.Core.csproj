@@ -60,4 +60,6 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.DisableRuntimeMarshalling"
                        Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))" />
   </ItemGroup>
+
+  <Import Project="AvaloniaUI.WebView.Core.targets" />
 </Project>

@@ -10,7 +10,7 @@ namespace AppleInterop;
 /// <summary>
 /// NSView on macOS or UIView on iOS
 /// </summary>
-internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
+internal abstract unsafe class AppleView : NSManagedObjectBase
 {
     private static readonly void* s_performKeyEquivalent = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, int>)&OnPerformKeyEquivalent;
     private static readonly void* s_acceptsFirstResponder = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr, int>)&AcceptsFirstResponder;
@@ -135,7 +135,7 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int OnPerformKeyEquivalent(IntPtr self, IntPtr sel, IntPtr nsEvent)
     {
-        var managedSelf = ReadManagedSelf(self);
+        var managedSelf = ReadManagedSelf<AppleView>(self);
         if (managedSelf is null)
             return 0;
 
@@ -159,7 +159,7 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int OnBecomeFirstResponder(IntPtr self, IntPtr sel)
     {
-        var managedSelf = ReadManagedSelf(self);
+        var managedSelf = ReadManagedSelf<AppleView>(self);
         if (managedSelf is null)
             return 0;
 
@@ -174,7 +174,7 @@ internal abstract unsafe class AppleView : NSManagedObjectBase<AppleView>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int OnResignFirstResponder(IntPtr self, IntPtr sel)
     {
-        var managedSelf = ReadManagedSelf(self);
+        var managedSelf = ReadManagedSelf<AppleView>(self);
         if (managedSelf is null)
             return 0;
 

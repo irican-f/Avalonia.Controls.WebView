@@ -34,7 +34,7 @@ internal class WKWebView : AppleView
 
         RegisterMethods(webViewClass);
 
-        var result = RegisterManagedSelfIVar(webViewClass);
+        var result = RegisterManagedMembers(webViewClass);
         Debug.Assert(result);
 
         Libobjc.objc_registerClassPair(webViewClass);

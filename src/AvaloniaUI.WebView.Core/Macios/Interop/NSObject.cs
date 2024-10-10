@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace AppleInterop;
@@ -113,7 +114,7 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
 
         if (_owns)
         {
-            Libobjc.void_objc_msgSend(Handle, s_releaseSel);
+            //Libobjc.void_objc_msgSend(Handle, s_releaseSel);
         }
     }
 
@@ -164,7 +165,7 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
         return !Equals(left, right);
     }
 
-    protected unsafe IntPtr GetSuperRef()
+    protected internal unsafe IntPtr GetSuperRef()
     {
         if (_superRef == default)
         {

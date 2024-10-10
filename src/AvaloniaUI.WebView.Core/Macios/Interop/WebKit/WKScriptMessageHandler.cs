@@ -3,11 +3,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using AppleInterop;
 
 namespace AppleInterop.WebKit;
 
-internal unsafe class WKScriptMessageHandler : NSManagedObjectBase<WKScriptMessageHandler>
+internal unsafe class WKScriptMessageHandler : NSManagedObjectBase
 {
     private static readonly IntPtr s_class;
 
@@ -29,7 +28,7 @@ internal unsafe class WKScriptMessageHandler : NSManagedObjectBase<WKScriptMessa
         result = Libobjc.class_addMethod(delegateClass, willPresentNotificationSel, s_didReceiveScriptMessage, "v@:@@");
         Debug.Assert(result == 1);
 
-        result = RegisterManagedSelfIVar(delegateClass) ? 1 : 0;
+        result = RegisterManagedMembers(delegateClass) ? 1 : 0;
         Debug.Assert(result == 1);
 
         Libobjc.objc_registerClassPair(delegateClass);
@@ -46,7 +45,7 @@ internal unsafe class WKScriptMessageHandler : NSManagedObjectBase<WKScriptMessa
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void OnDidReceiveScriptMessage(IntPtr self, IntPtr sel, IntPtr controller, IntPtr messagePtr)
     {
-        var managed = ReadManagedSelf(self);
+        var managed = ReadManagedSelf<WKScriptMessageHandler>(self);
         var messageName = NSString.GetString(Libobjc.intptr_objc_msgSend(messagePtr, s_messageName));
         var messageBody = NSString.GetString(Libobjc.intptr_objc_msgSend(messagePtr, s_messageBody));
         managed?.DidReceiveScriptMessage?.Invoke(managed, new ScriptMessageEventArgs

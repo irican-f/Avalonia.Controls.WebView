@@ -7,7 +7,7 @@ using AppleInterop;
 
 namespace AppleInterop.WebKit;
 
-internal unsafe class WKNavigationDelegate : NSManagedObjectBase<WKNavigationDelegate>
+internal unsafe class WKNavigationDelegate : NSManagedObjectBase
 {
     private static readonly IntPtr s_class;
 
@@ -32,7 +32,7 @@ internal unsafe class WKNavigationDelegate : NSManagedObjectBase<WKNavigationDel
         result = Libobjc.class_addMethod(delegateClass, didReceiveNotificationResponse, s_decidePolicyForNavigationAction, "v@:@@@");
         Debug.Assert(result == 1);
 
-        result = RegisterManagedSelfIVar(delegateClass) ? 1 : 0;
+        result = RegisterManagedMembers(delegateClass) ? 1 : 0;
         Debug.Assert(result == 1);
 
         Libobjc.objc_registerClassPair(delegateClass);
@@ -50,7 +50,7 @@ internal unsafe class WKNavigationDelegate : NSManagedObjectBase<WKNavigationDel
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void OnDidFinishNavigation(IntPtr self, IntPtr sel, IntPtr webView, IntPtr navigation)
     {
-        var managed = ReadManagedSelf(self);
+        var managed = ReadManagedSelf<WKNavigationDelegate>(self);
         managed?.DidFinishNavigation?.Invoke(managed, EventArgs.Empty);
     }
 
@@ -59,7 +59,7 @@ internal unsafe class WKNavigationDelegate : NSManagedObjectBase<WKNavigationDel
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void OnDecidePolicyForNavigationAction(IntPtr self, IntPtr sel, IntPtr webView, IntPtr navigationAction, IntPtr decisionHandler)
     {
-        var managed = ReadManagedSelf(self);
+        var managed = ReadManagedSelf<WKNavigationDelegate>(self);
 
         using var request = new NSURLRequest(Libobjc.intptr_objc_msgSend(navigationAction, s_actionRequest), false);
         using var nsUrl = request.Url;
@@ -67,7 +67,7 @@ internal unsafe class WKNavigationDelegate : NSManagedObjectBase<WKNavigationDel
         var args = new DecidePolicyNavigationEventArgs { Request = new Uri(nsUrl.AbsoluteString!) };
         managed?.DecidePolicyNavigation?.Invoke(managed, args);
 
-        var callback = (delegate* unmanaged[Cdecl]<IntPtr, int, void>)BlockLiteral.GetCallback(decisionHandler);
+        var callback = (delegate* unmanaged[Cdecl]<IntPtr, long, void>)BlockLiteral.GetCallback(decisionHandler);
         callback(decisionHandler, args.Cancel ? 0 : 1);
     }
 
