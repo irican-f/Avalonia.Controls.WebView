@@ -17,6 +17,7 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
     private static readonly IntPtr s_retainCountSel = Libobjc.sel_getUid("retainCount");
     private static readonly IntPtr s_conformsToProtocol = Libobjc.sel_getUid("conformsToProtocol:");
     private static readonly IntPtr s_respondsToSelector = Libobjc.sel_getUid("respondsToSelector:");
+    private static readonly IntPtr s_description = Libobjc.sel_getUid("description");
 
     private bool _owns;
     private readonly IntPtr _class;
@@ -68,6 +69,9 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
     {
         return Libobjc.int_objc_msgSend(handle, s_respondsToSelector, selectorHandle) == 1;
     }
+
+    public static string? GetDescription(IntPtr handle) =>
+        NSString.GetString(Libobjc.intptr_objc_msgSend(handle, s_description));
 
     protected unsafe bool SetIvarValue(string varName, IntPtr value)
     {
@@ -139,6 +143,11 @@ internal abstract class NSObject : IDisposable, IEquatable<NSObject>
     ~NSObject()
     {
         Dispose(false);
+    }
+
+    public override string? ToString()
+    {
+        return GetDescription(Handle);
     }
 
     public bool Equals(NSObject? other)

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -20,16 +21,31 @@ public partial class MainView : UserControl
     {
         LogList.Text += "\r\nNativeWebView_OnNavigationCompleted " + e.Request;
 
-        await ((NativeWebView)sender!).InvokeScript(""" invokeCSharpAction({'key': 10}) """);
+        var webView = (NativeWebView)sender!;
+        _ = await webView.InvokeScript(""" invokeCSharpAction({'key': 10}) """);
 
-        var webView = (NativeWebView)sender;
-        await webView.InvokeScript("1+1");
-        await webView.InvokeScript("'test'");
-        await webView.InvokeScript("var x = 123; x");
-        await webView.InvokeScript("var x = 'test'; x");
-        await webView.InvokeScript("'te\"st'");
-        await webView.InvokeScript("'te()st'");
-        await webView.InvokeScript("document.body.innerHTML");
+        await InvokeTestScript(webView, "1+1");
+        await InvokeTestScript(webView, "'test'");
+        await InvokeTestScript(webView, "var x = 123; x");
+        await InvokeTestScript(webView, "var x = 'test'; x");
+        await InvokeTestScript(webView, "'te\"st'");
+        await InvokeTestScript(webView, "'te()st'");
+        await InvokeTestScript(webView, "document.body.innerHTML");
+        await InvokeTestScript(webView, "true");
+        try
+        {
+            await InvokeTestScript(webView, "throw new Error('Hello there')");
+        }
+        catch (Exception ex)
+        {
+            LogList.Text += "\r\nTest Script Exception " + ex.Message;
+        }
+    }
+
+    private async Task InvokeTestScript(NativeWebView webView, string script)
+    {
+        var result = await webView.InvokeScript(script);
+        LogList.Text += "\r\nTest Script " + script + ": " + result;
     }
 
     private void NativeWebView_OnNavigationStarted(object? sender, WebViewNavigationStartingEventArgs e)

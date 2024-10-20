@@ -51,8 +51,8 @@ internal class NSDictionary : NSObject
     {
         var dictionary = new Dictionary<string, string?>();
 
-        var count = CFDictionaryGetCount(handle);
-        if (count > 0)
+        if (handle != default
+            && CFDictionaryGetCount(handle) is var count and > 0)
         {
             var keys = new IntPtr[count];
             var values = new IntPtr[count];
@@ -65,7 +65,9 @@ internal class NSDictionary : NSObject
             for (var i = 0; i < count; i++)
             {
                 var str = NSString.GetString(keys[i])!;
-                var value = NSString.TryGetString(values[i]) ?? NSNumber.TryAsStringValue(values[i]);
+                var value = NSString.TryGetString(values[i])
+                            ?? NSNumber.TryAsStringValue(values[i])
+                            ?? GetDescription(values[i]);
                 dictionary.Add(str, value);
             }
         }

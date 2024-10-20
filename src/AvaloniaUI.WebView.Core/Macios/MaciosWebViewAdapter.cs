@@ -92,7 +92,15 @@ public class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWit
 
     public async Task<string?> InvokeScript(string script)
     {
-        return await _webView.EvaluateJavaScriptAsync(script);
+        try
+        {
+            return await _webView.EvaluateJavaScriptAsync(script);
+        }
+        catch (NSErrorException ex)
+            when (ex is { Domain: "WKErrorDomain", Code: 4 } && ex.Data.Contains("WKJavaScriptExceptionMessage"))
+        {
+            throw new JavaScriptException(ex.Data["WKJavaScriptExceptionMessage"]!.ToString()!, ex);
+        }
     }
 
     public void Navigate(Uri url)

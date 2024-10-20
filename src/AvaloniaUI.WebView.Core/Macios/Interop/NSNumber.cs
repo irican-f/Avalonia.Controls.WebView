@@ -6,7 +6,7 @@ internal sealed class NSNumber : NSValue
 {
     private static readonly IntPtr s_class = Libobjc.objc_getClass("NSNumber");
     private static readonly IntPtr s_numberWithBool = Libobjc.sel_getUid("numberWithBool:");
-    private static readonly IntPtr s_stringValue = Libobjc.objc_getClass("stringValue");
+    private static readonly IntPtr s_stringValue = Libobjc.sel_getUid("stringValue");
 
     public static NSNumber Yes { get; } = new(true);
     public static NSNumber No { get; } = new(false);
