@@ -4,6 +4,7 @@ using IPlatformHandle = Avalonia.Platform.IPlatformHandle;
 using AvaloniaUI.WebView.Gtk;
 #if WPF
 using System.Windows;
+using AvaloniaUI.Xpf.WpfAbstractions;
 #elif AVALONIA
 using Avalonia.Controls;
 #endif
@@ -40,13 +41,45 @@ public class NativeWebViewDialog : IWebView, INativeWebViewDialog
 
     public void Dispose() => _impl.Dispose();
 
-    IWebView INativeWebViewDialog.WebView => _impl.WebView;
-
     public string? Title { get => _impl.Title; set => _impl.Title = value; }
     public void Show() => _impl.Show();
-    public void Show(IPlatformHandle owner) => _impl.Show(owner);
+
+#if WPF
+    public void Show(Window owner)
+#elif AVALONIA
+    public void Show(TopLevel owner)
+#endif
+    {
+#if WPF
+        var avTopLevel = XpfWpfAbstraction.GetAvaloniaTopLevelForWindow(owner);
+#elif AVALONIA
+        var avTopLevel = owner;
+#endif
+
+        if (owner is Window ownerWindow && TryGetWindow() is { } window)
+        {
+#if WPF
+            window.Owner = ownerWindow;
+            window.Show();
+#elif AVALONIA
+            window.Show(ownerWindow);
+#endif
+        }
+        else if (avTopLevel?.TryGetPlatformHandle() is { } platformHandle)
+        {
+            _impl.Show(platformHandle);
+        }
+        else
+        {
+            _impl.Show();
+        }
+    }
+
     public void Close() => _impl.Close();
 
     public IPlatformHandle? TryGetPlatformHandle() => _impl.TryGetPlatformHandle();
     public Window? TryGetWindow() => _impl as WindowNativeWebViewDialog;
+
+    IWebView INativeWebViewDialog.WebView => _impl.WebView;
+    void INativeWebViewDialog.Show(IPlatformHandle owner) => _impl.Show(owner);
 }

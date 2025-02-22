@@ -4,8 +4,6 @@ using AvTopLevel = Avalonia.Controls.TopLevel;
 #if WPF
 using System.Windows;
 using AvaloniaUI.Xpf.WpfAbstractions;
-#elif AVALONIA
-using Avalonia.Controls;
 #endif
 
 namespace AvaloniaUI.WebView;
@@ -23,7 +21,11 @@ public static class WebAuthenticationBroker
             OperatingSystemEx.IsWindows() || OperatingSystemEx.IsLinux() || OperatingSystemEx.IsMacOS();
 
         if (!(supportsNativeWebDialog & options.PreferNativeWebViewDialog)
-            && GetAvTopLevel(topLevel) is { } avTopLevel
+#if WPF
+            && XpfWpfAbstraction.GetAvaloniaTopLevelForWindow(topLevel) is { } avTopLevel
+#elif AVALONIA
+            && topLevel is var avTopLevel
+#endif
             && (OperatingSystemEx.IsIOSVersionAtLeast(13, 0) || OperatingSystemEx.IsMacOSVersionAtLeast(10, 15)))
         {
             return MaciosWebAuthenticationBroker.AuthenticateAsync(avTopLevel, options);
@@ -36,13 +38,6 @@ public static class WebAuthenticationBroker
 
         throw new PlatformNotSupportedException();
     }
-
-#if WPF
-    private static AvTopLevel? GetAvTopLevel(Window window) =>
-        XpfWpfAbstraction.GetAvaloniaTopLevelForWindow(window);
-#elif AVALONIA
-    private static AvTopLevel? GetAvTopLevel(AvTopLevel topLevel) => topLevel;
-#endif
 
     private static async Task<WebAuthenticationResult> AuthenticateDialogAsync
 #if WPF
@@ -60,23 +55,7 @@ public static class WebAuthenticationBroker
         {
             dialog.Title = "Authentication";
             dialog.Source = options.RequestUri;
-            if (topLevel is Window owner && dialog.TryGetWindow() is { } window)
-            {
-#if WPF
-                window.Owner = owner;
-                window.Show();
-#elif AVALONIA
-                window.Show(owner);
-#endif
-            }
-            else if (GetAvTopLevel(topLevel)?.TryGetPlatformHandle() is { } platformHandle)
-            {
-                dialog.Show(platformHandle);
-            }
-            else
-            {
-                dialog.Show();
-            }
+            dialog.Show(topLevel);
 
             return await tcs.Task;
         }
