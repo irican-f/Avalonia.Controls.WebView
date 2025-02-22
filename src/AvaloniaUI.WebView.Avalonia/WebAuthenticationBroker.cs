@@ -61,6 +61,10 @@ public static class WebAuthenticationBroker
                 windowDialog.Show(owner);
 #endif
             }
+            else if (owner?.TryGetPlatformHandle() is { } platformHandle)
+            {
+                dialog.Show(platformHandle);
+            }
             else
             {
                 dialog.Show();

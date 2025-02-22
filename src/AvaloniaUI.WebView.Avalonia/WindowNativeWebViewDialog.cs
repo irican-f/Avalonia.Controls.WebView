@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Avalonia.Platform;
 #if WPF
 using System.Windows;
 #elif AVALONIA
@@ -41,4 +42,6 @@ internal class WindowNativeWebViewDialog : Window, INativeWebViewDialog
     public bool Stop() => _nativeWebView.Stop();
 
     public void Dispose() {}
+
+    void INativeWebViewDialog.Show(IPlatformHandle _) => Show();
 }

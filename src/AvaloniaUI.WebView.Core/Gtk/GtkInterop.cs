@@ -9,6 +9,7 @@ internal static unsafe partial class GtkInterop
     private const string LibWebKit = "libwebkit2gtk-4.1.so.0";
     private const string LibGio = "libgio-2.0.so.0";
     private const string LibGtk = "libgtk-3.so.0";
+    private const string LibGdk = "libgdk-3.so.0";
 
     [DllImport(LibWebKit)]
     internal static extern IntPtr webkit_web_view_get_uri(IntPtr webView);
@@ -86,6 +87,21 @@ internal static unsafe partial class GtkInterop
 
     [DllImport(LibGtk)]
     internal static extern IntPtr gtk_window_new(int type);
+
+    [DllImport(LibGtk)]
+    internal static extern void gtk_widget_realize(IntPtr gtkWidget);
+
+    [DllImport(LibGtk)]
+    internal static extern IntPtr gtk_widget_get_window(IntPtr gtkWidget);
+
+    [DllImport(LibGdk)]
+    internal static extern void gdk_window_set_transient_for(IntPtr window, IntPtr parent);
+
+    [DllImport(LibGdk)]
+    internal static extern IntPtr gdk_x11_window_foreign_new_for_display(IntPtr display, IntPtr xid);
+
+    [DllImport(LibGdk)]
+    internal static extern IntPtr gdk_display_get_default();
 
     [DllImport(LibGtk)]
     internal static extern IntPtr gtk_window_get_title(IntPtr window);

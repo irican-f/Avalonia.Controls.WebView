@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Platform;
 using static AvaloniaUI.WebView.Gtk.GtkInterop;
 using static AvaloniaUI.WebView.Gtk.AvaloniaGtk;
 
@@ -31,7 +32,6 @@ public sealed class GtkNativeWebViewDialog : INativeWebViewDialog
             var scrolled = gtk_scrolled_window_new(IntPtr.Zero, IntPtr.Zero);
             gtk_container_add(scrolled, _nativeWebView.Handle);
             gtk_container_add(_windowHandle, scrolled);
-            gtk_widget_show_all(_windowHandle);
             return 0;
         });
     }
@@ -64,7 +64,34 @@ public sealed class GtkNativeWebViewDialog : INativeWebViewDialog
         set => RunOnGlibThread(() => gtk_window_set_title(_windowHandle, value ?? string.Empty));
     }
 
-    public void Show() => RunOnGlibThread(() => gtk_window_present(_windowHandle));
+    public void Show() => RunOnGlibThread(() =>
+    {
+        gtk_widget_show_all(_windowHandle);
+        gtk_window_present(_windowHandle);
+    });
+
+    public void Show(IPlatformHandle owner)
+    {
+        if (owner.HandleDescriptor != "XID")
+        {
+            Show();
+            return;
+        }
+
+        RunOnGlibThread(() =>
+        {
+            var xid = owner.Handle;
+            var parent = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xid);
+            gtk_widget_realize(_windowHandle);
+            var window = gtk_widget_get_window(_windowHandle);
+            if (parent != IntPtr.Zero)
+            {
+                gdk_window_set_transient_for(window, parent);
+            }
+            gtk_widget_show_all(_windowHandle);
+            gtk_window_present(_windowHandle);
+        });
+    }
 
     public void Close()
     {

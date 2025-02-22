@@ -32,6 +32,7 @@ internal interface INativeWebViewDialog : IWebView, IDisposable
 {
     string? Title { get; set; }
     void Show();
+    void Show(IPlatformHandle owner);
     void Close();
 }
 
