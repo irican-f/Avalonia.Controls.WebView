@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using MicroCom.CodeGenerator;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -72,6 +73,10 @@ class Build : NukeBuild
         if (Version.TryParse(RefName, out var version))
         {
             return RefName;
+        }
+        else if (Regex.Match(RefName, """release\/(?<ver>[\d\.]*)""") is { Success: true } match)
+        {
+            return match.Groups["ver"].Value;
         }
         else if (CiRunNumber is not null)
         {
