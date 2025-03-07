@@ -1,5 +1,6 @@
 using Avalonia;
 using System;
+using Avalonia.Controls;
 
 namespace AvaloniaUI.WebView.Avalonia.Samples;
 

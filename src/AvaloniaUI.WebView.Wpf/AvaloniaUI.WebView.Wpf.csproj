@@ -5,10 +5,11 @@
     <UseWpf>true</UseWpf>
     <DefineConstants>$(DefineConstants);WPF</DefineConstants>
     <IsPackable>true</IsPackable>
+    <RootNamespace>Avalonia.Xpf.Controls</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AvaloniaUI.WebView.Core\AvaloniaUI.WebView.Core.csproj" />
+    <ProjectReference Include="..\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,19 +17,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\AvaloniaUI.WebView.Avalonia\NativeWebView.cs">
+    <Compile Include="..\Avalonia.Controls.WebView\NativeWebView.cs">
       <Link>NativeWebView.cs</Link>
     </Compile>
-    <Compile Include="..\AvaloniaUI.WebView.Avalonia\NativeWebViewControlHost.cs">
+    <Compile Include="..\Avalonia.Controls.WebView\NativeWebViewControlHost.cs">
       <Link>NativeWebViewControlHost.cs</Link>
     </Compile>
-    <Compile Include="..\AvaloniaUI.WebView.Avalonia\NativeWebViewDialog.cs">
+    <Compile Include="..\Avalonia.Controls.WebView\NativeWebViewDialog.cs">
       <Link>NativeWebViewDialog.cs</Link>
     </Compile>
-    <Compile Include="..\AvaloniaUI.WebView.Avalonia\WebAuthenticationBroker.cs">
+    <Compile Include="..\Avalonia.Controls.WebView\WebAuthenticationBroker.cs">
       <Link>WebAuthenticationBroker.cs</Link>
     </Compile>
-    <Compile Include="..\AvaloniaUI.WebView.Avalonia\WindowNativeWebViewDialog.cs">
+    <Compile Include="..\Avalonia.Controls.WebView\WindowNativeWebViewDialog.cs">
       <Link>WindowNativeWebViewDialog.cs</Link>
     </Compile>
   </ItemGroup>

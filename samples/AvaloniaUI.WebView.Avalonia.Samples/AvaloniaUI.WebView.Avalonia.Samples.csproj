@@ -7,7 +7,7 @@
         <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaSampleVersion)"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AvaloniaUI.WebView.Avalonia\AvaloniaUI.WebView.Avalonia.csproj"/>
+        <ProjectReference Include="..\..\src\Avalonia.Controls.WebView\Avalonia.Controls.WebView.csproj" />
     </ItemGroup>
 
 </Project>

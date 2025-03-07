@@ -2,6 +2,8 @@
 using System.Windows.Input;
 using System.Windows.Interop;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Xpf.Controls;
 using AvaloniaUI.Xpf.WpfAbstractions;
 using TabItem = System.Windows.Controls.TabItem;
 using Window = System.Windows.Window;
