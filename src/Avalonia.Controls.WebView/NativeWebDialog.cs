@@ -17,14 +17,14 @@ namespace Avalonia.Xpf.Controls
 #endif
 {
     /// <summary>
-    /// <see cref="NativeWebViewDialog"/> is a dialog window that hosts a native web browser implementation.
+    /// <see cref="NativeWebDialog"/> is a dialog window that hosts a native web browser implementation.
     /// It provides a way to display web content in a separate window, particularly useful for platforms like Linux where embedded WebView controls might not be available.
     /// </summary>
-    public class NativeWebViewDialog : IWebView, INativeWebViewDialog
+    public class NativeWebDialog : IWebView, INativeWebViewDialog
     {
         private readonly INativeWebViewDialog _impl;
 
-        public NativeWebViewDialog()
+        public NativeWebDialog()
         {
             _impl = OperatingSystemEx.IsLinux() ? new Core.Gtk.GtkNativeWebViewDialog() : new WindowNativeWebViewDialog();
             _impl.Closing += (_, args) => Closing?.Invoke(this, args);

@@ -61,7 +61,7 @@ namespace Avalonia.Xpf.Controls
             (AvTopLevel topLevel, WebAuthenticatorOptions options)
 #endif
         {
-            using var dialog = new NativeWebViewDialog();
+            using var dialog = new NativeWebDialog();
             var tcs = new TaskCompletionSource<WebAuthenticationResult>();
 
             dialog.Closing += OnClosing;
