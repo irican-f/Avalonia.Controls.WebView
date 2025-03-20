@@ -123,7 +123,6 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
 
     public void Dispose()
     {
-        _webView.RemoveJavascriptInterface(PostAvWebViewMessageName);
         _webView.Dispose();
     }
 
@@ -148,7 +147,16 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
     public void DeleteCookie(string name, string domain, string path)
     {
         var androidCookie = global::Android.Webkit.CookieManager.Instance;
-        //androidCookie.RemoveCookie(domain);
+        if (androidCookie != null)
+        {
+            // Set an expired cookie with the same name to delete it
+            // Format: [name]=;domain=[domain];path=[path];expires=Thu, 01 Jan 1970 00:00:00 GMT
+            var cookieString = $"{name}=;domain={domain};path={path};expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            androidCookie.SetCookie(domain, cookieString);
+
+            // Ensure changes are synchronized
+            androidCookie.Flush();
+        }
     }
 
     public Task<IReadOnlyList<Cookie>> GetCookiesAsync()
