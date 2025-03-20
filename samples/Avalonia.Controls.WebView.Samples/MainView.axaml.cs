@@ -134,10 +134,14 @@ public partial class MainView : UserControl
     {
         var redirectUri = OperatingSystem.IsIOS() ?
             "com.googleusercontent.apps.457602913817-kd2547t40mrvqi63c4m7lphs5s6s5lt2://" :
-            "http://localhost";
+            OperatingSystem.IsAndroid() ?
+                "com.AvaloniaUI.WebView.Samples:/oauth2redirect" :
+                "http://localhost";
         var clientId = OperatingSystem.IsIOS() ?
             "457602913817-kd2547t40mrvqi63c4m7lphs5s6s5lt2.apps.googleusercontent.com" :
-            "457602913817-2qhv0sr6d08gvs3amj3vjpnodt7hnfai.apps.googleusercontent.com";
+            OperatingSystem.IsAndroid() ?
+                "457602913817-12s7l3shl5nipenm61cqdbsu7ehsm26b.apps.googleusercontent.com" :
+                "457602913817-2qhv0sr6d08gvs3amj3vjpnodt7hnfai.apps.googleusercontent.com";
 
         var requestUri = "https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&scope=openid";
         requestUri += "&client_id=" + clientId;

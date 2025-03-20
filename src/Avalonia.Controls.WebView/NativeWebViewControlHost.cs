@@ -59,7 +59,12 @@ namespace Avalonia.Xpf.Controls
             // {
             //     adapter = new Core.Browser.BrowserIFrameAdapter();
             // } else
-#if NET6_0_OR_GREATER || NETFRAMEWORK
+#if ANDROID
+            if (OperatingSystem.IsAndroid())
+            {
+                adapter = new Android.AndroidWebViewAdapter(parent);
+            }
+#elif NET6_0_OR_GREATER || NETFRAMEWORK
             if (OperatingSystemEx.IsWindows())
             {
                 if (WebViewHelper.IsMsWebView2Available)

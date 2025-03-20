@@ -80,7 +80,12 @@ namespace Avalonia.Xpf.Controls
         /// Returns instance <see cref="NativeWebViewCommandManager"/> that allows executing common keyboard commands. Or null, if not supported by the platform.
         /// </summary>
         public Core.NativeWebViewCommandManager? TryGetCommandManager() =>
-            _controlHostImpl.TryGetAdapter() is Core.IWebViewAdapterWithCommands commands ? new(commands) : null;
+            _controlHostImpl.TryGetAdapter() switch
+            {
+                Core.IWebViewAdapterWithCommands commands => new Core.NativeWebViewCommandManager(commands),
+                { } adapter => new Core.GenericCommands(_controlHostImpl.TryGetAdapter()),
+                _ => null
+            };
 
         /// <summary>
         /// Returns instance <see cref="NativeWebViewCookieManager"/> that allows reading and settings cookies. Or null, if not supported by the platform.
