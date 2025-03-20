@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Android.Content;
 using Avalonia.Android;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using IPlatformHandle = Avalonia.Platform.IPlatformHandle;
 
 namespace Avalonia.Controls.Android;
@@ -179,7 +180,8 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
         [JavascriptInterface]
         public void PostMessage(string message)
         {
-            adapter.WebMessageReceived?.Invoke(adapter, new WebMessageReceivedEventArgs { Body = message });
+            _ = Dispatcher.UIThread.InvokeAsync(() =>
+                adapter.WebMessageReceived?.Invoke(adapter, new WebMessageReceivedEventArgs { Body = message }));
         }
     }
 
@@ -197,7 +199,14 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
             base.OnPageFinished(view, url);
 
             adapter._webView.EvaluateJavascript(
-                $"function invokeCSharpAction(data){{ {PostAvWebViewMessageName}.postMessage(data); }}", null);
+                """
+                 function invokeCSharpAction(data)
+                 {
+                    var message = typeof data === 'object' ? JSON.stringify(data) : data;
+                    postAvWebViewMessage.postMessage(message);
+                 }
+                 """
+                , null);
 
             var uri = Uri.TryCreate(url, UriKind.Absolute, out var result) ? result : null;
             adapter.NavigationCompleted?.Invoke(adapter,
