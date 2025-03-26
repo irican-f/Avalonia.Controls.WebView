@@ -13,4 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\**\*" PackagePath="build;buildTransitive" />
+  </ItemGroup>
 </Project>
