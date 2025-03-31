@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <Import Project="../Avalonia.Controls.WebView.Core/IncludeBuildItems.props" />
+  <Import Project="$(RepositoryPropsRoot)/Constants.targets" />
   <Import Project="$(RepositoryPropsRoot)/PackEnable.targets" />
   <Import Project="$(RepositoryPropsRoot)/NullableEnable.targets" />
   <Import Project="$(RepositoryPropsRoot)/PolyfillEnable.targets" />

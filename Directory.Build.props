@@ -12,8 +12,9 @@
     <AvaloniaVersion>11.1.0</AvaloniaVersion>
     <AvaloniaSampleVersion>11.2.6</AvaloniaSampleVersion>
 
-    <!-- The event '' is never used -->
-    <NoWarn>$(NoWarn);CS0067</NoWarn>
+    <!-- CS0067: The event '' is never used -->
+    <!-- NU1900: Error occurred while getting package vulnerability data -->
+    <NoWarn>$(NoWarn);CS0067;NU1900</NoWarn>
 
     <RepoRoot Condition="'$(RepoRoot)' == ''">$(MSBuildThisFileDirectory)</RepoRoot>
     <PackageOutputPath>$(RepoRoot)\artifacts\packages</PackageOutputPath>

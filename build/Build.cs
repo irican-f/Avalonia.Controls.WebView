@@ -13,7 +13,6 @@ using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Serilog;
-using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 class Build : NukeBuild
@@ -55,12 +54,6 @@ class Build : NukeBuild
         {
             foreach (var srcProject in (RootDirectory / "src").GlobFiles("**/*.csproj"))
             {
-                if (srcProject.Name.Contains("Xpf") && CiRunNumber is not null)
-                {
-                    // Skip XPF on CI
-                    continue;
-                }
-
                 DotNetBuild(c => c
                     .SetProjectFile(srcProject)
                     .SetVerbosity(DotNetVerbosity.minimal)
@@ -80,6 +73,8 @@ class Build : NukeBuild
                 p.Name.Contains("Avalonia.Xpf.Controls.WebView"));
 
             var libs = string.Join(' ', GetExtraDepLibs().Select(l => $"/lib:{l}"));
+            var coreProjectPublicApi = (RootDirectory / "src").GlobFiles("**/Avalonia.Controls.WebView.Core.csproj")
+                .First().Parent / "public-api.txt";
 
             foreach (var mergeRootProject in mergeRootProjects)
             {
@@ -97,7 +92,7 @@ class Build : NukeBuild
                     var signParams = "";// $"/keyfile:{RootDirectory / "build" / "avalonia.snk"}";
 
                     IlRepackTool.Invoke(
-                        $"""/internalize /parallel /ndebug {libs:nq} {signParams} /out:"{mergeRootDll}" "{mergeRootDll}" {dependenciesArg} """,
+                        $"""/internalize:{coreProjectPublicApi} /renameinternalized /parallel /ndebug {libs:nq} {signParams} /out:"{mergeRootDll}" "{mergeRootDll}" {dependenciesArg} """,
                         mergeRootDll.Parent);
                 }
             }
@@ -121,12 +116,6 @@ class Build : NukeBuild
             var srcRootDirectory = RootDirectory / "src";
             foreach (var srcProject in srcRootDirectory.GlobFiles("**/*.csproj"))
             {
-                if (srcProject.Name.Contains("Xpf") && CiRunNumber is not null)
-                {
-                    // Skip XPF on CI
-                    continue;
-                }
-
                 DotNetPack(c => c
                     .SetProject(srcProject)
                     .SetNoBuild(true)
