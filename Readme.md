@@ -24,6 +24,8 @@ Gets oauth URL as an input, and returns redirected URL once authentication is co
 More or less just a helper over OAuth specification.
 Should be compatible with Google, Azure and custom OAuth implementations, based on redirect Urls.
 
+See Accelerate `avalonia-docs` for actual documentation on each component. 
+
 ## Projects
 
 ### Avalonia.Controls.WebView
@@ -38,7 +40,7 @@ XPF/WPF specific project.
 
 Shared code between Avalonia and XPF.
 Note 1: this project is ILRepack merged into Avalonia/XPF ones. This project is not published on NuGet.
-Note 2: some shared code is linked as files, like NativeWebView.cs, with `#if AVALONIA/XPF` conditions. 
+Note 2: some shared code is linked as files, like NativeWebView.cs, with `#if AVALONIA/XPF` conditions.
 
 ## Build
 
