@@ -17,6 +17,7 @@
     <AvaloniaAccessUnstablePrivateApis>true</AvaloniaAccessUnstablePrivateApis>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AndroidGenerateResourceDesigner>false</AndroidGenerateResourceDesigner>
+    <AvnLicensingEmitBuildTime>true</AvnLicensingEmitBuildTime>
   </PropertyGroup>
 
   <ItemGroup>
