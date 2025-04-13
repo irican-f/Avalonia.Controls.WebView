@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<Project DefaultTargets="Avalonia.Media"
+<Project DefaultTargets="Avalonia.Controls.WebView"
     xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
     <UsingTask TaskName="Babel"
