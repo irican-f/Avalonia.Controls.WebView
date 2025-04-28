@@ -67,7 +67,7 @@ public partial class MainView : UserControl
     private async Task InvokeTestScript(NativeWebView webView, string script)
     {
         var result = await webView.InvokeScript(script);
-        LogList.Text += "\r\nTest Script " + script + ": " + result;
+        LogList.Text += "\r\nTest Script " + script + ": " + (result?.Length > 100 ? result[..100] + "..." : result);;
     }
 
     private void NativeWebView_OnNavigationStarted(object? sender, WebViewNavigationStartingEventArgs e)
