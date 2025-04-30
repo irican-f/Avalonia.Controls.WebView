@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Avalonia.Controls.Gtk;
 
@@ -32,20 +33,8 @@ internal sealed class GtkSignal
         GCHandle.FromIntPtr(data).Free();
     }
 
-    private void ReleaseUnmanagedResources()
-    {
-        GtkInterop.g_signal_handler_disconnect(_instance, _signal);
-    }
-
     public void Dispose()
     {
-        _state.Free();
-        ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
-    }
-
-    ~GtkSignal()
-    {
-        ReleaseUnmanagedResources();
+        GtkInterop.g_signal_handler_disconnect(_instance, _signal);
     }
 }

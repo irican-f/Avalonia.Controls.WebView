@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -28,6 +29,7 @@ internal unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
         _windowHandle = RunOnGlibThread(() =>
         {
             var window = useGtkOffscreen ? gtk_offscreen_window_new() : gtk_window_new(0 /* GTK_WINDOW_TOPLEVEL */);
+            g_object_ref_sink(window);
             gtk_window_set_default_size(window, 100, 100);
             return window;
         });
@@ -286,19 +288,25 @@ internal unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
         return output;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void DisposeSafe(bool disposing)
     {
-        var window = _windowHandle;
+        if (disposing)
+        {
+            Interlocked.Exchange(ref _drawSignal, null)?.Dispose();
+        }
+
+        var window = Interlocked.Exchange(ref _windowHandle, IntPtr.Zero);
         if (window != IntPtr.Zero)
         {
-            _windowHandle = IntPtr.Zero;
+            gtk_container_remove(window, Handle);
+        }
 
-            if (disposing)
-            {
-                _drawSignal?.Dispose();
-            }
+        // Let nested control to be destroyed first. 
+        base.DisposeSafe(disposing);
 
-            base.Dispose(disposing);
+        if (window != IntPtr.Zero)
+        {
+            g_object_unref(window);
             gtk_widget_destroy(window);
         }
     }

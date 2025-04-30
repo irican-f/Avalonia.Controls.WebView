@@ -85,11 +85,19 @@ internal static unsafe partial class GtkInterop
     [DllImport(LibWebKit)]
     public static extern nint jsc_value_to_string(IntPtr value);
 
+    [DllImport(LibWebKit)]
+    public static extern nint webkit_user_message_get_name(IntPtr message);
+
+    [DllImport(LibWebKit)]
+    public static extern nint webkit_user_message_get_parameters(IntPtr message);
+
     [DllImport(LibGtk)]
     internal static extern IntPtr gtk_scrolled_window_new(IntPtr hadjustment, IntPtr vadjustment);
 
     [DllImport(LibGtk)]
     internal static extern void gtk_container_add(IntPtr container, IntPtr widget);
+    [DllImport(LibGtk)]
+    internal static extern void gtk_container_remove(IntPtr container, IntPtr widget);
 
     [DllImport(LibGtk)]
     internal static extern void gtk_application_add_window(IntPtr app, IntPtr window);
@@ -109,11 +117,25 @@ internal static unsafe partial class GtkInterop
     [DllImport(LibGObject)]
     internal static extern IntPtr g_object_ref(IntPtr handle);
 
+    [DllImport(LibGObject)]
+    internal static extern IntPtr g_object_ref_sink(IntPtr handle);
+
     [DllImport (LibGObject)]
     internal static extern void g_object_unref(IntPtr handle);
 
+#if NET7_0_OR_GREATER
+    [LibraryImport(LibGObject, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial void g_variant_get(IntPtr variant, string formatString, out string? result);
+#else
+    [DllImport (LibGObject, CharSet = CharSet.Ansi)]
+    internal static extern void g_variant_get(IntPtr variant, string formatString, out string? result);
+#endif
+
     [DllImport(LibGtk)]
     internal static extern IntPtr gtk_window_new(int type);
+
+    [DllImport(LibGtk)]
+    internal static extern void gtk_window_close(IntPtr window);
 
     [DllImport(LibGtk)]
     internal static extern IntPtr gtk_offscreen_window_new();

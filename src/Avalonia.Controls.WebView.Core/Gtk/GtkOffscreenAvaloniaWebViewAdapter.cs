@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -15,11 +14,14 @@ internal unsafe class GtkOffscreenAvaloniaWebViewAdapter : GtkOffscreenWebViewAd
 {
     private static readonly IntPtr s_showOptionMenuCallback =
         new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, GdkEvent*, GdkRectangle*, IntPtr, bool>)&ShowOptionMenuCallback);
+    private static readonly IntPtr s_contextMenuCallback =
+        new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, GdkEvent*, IntPtr, IntPtr, bool>)&ContextMenuCallback);
     private static readonly IntPtr s_optionsMenuClosedCallback =
         new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, void>)&MenuClosedCallback);
 
     private readonly Control _parent;
     private GtkSignal? _showOptionMenuSignal;
+    //private GtkSignal? _contextMenuSignal;
     private HashSet<IDisposable> _openedMenus = new();
 
     public GtkOffscreenAvaloniaWebViewAdapter(Control parent)
@@ -28,22 +30,36 @@ internal unsafe class GtkOffscreenAvaloniaWebViewAdapter : GtkOffscreenWebViewAd
         RunOnGlibThreadAsync(() =>
         {
             _showOptionMenuSignal = new GtkSignal(Handle, "show-option-menu", s_showOptionMenuCallback, this);
+            //_contextMenuSignal = new GtkSignal(Handle, "context-menu", s_contextMenuCallback, this);
         });
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void DisposeSafe(bool disposing)
     {
         if (disposing)
         {
-            _showOptionMenuSignal?.Dispose();
+            Interlocked.Exchange(ref _showOptionMenuSignal, null)?.Dispose();
+            // Interlocked.Exchange(ref contextMenuSignal, null)?.Dispose();
 
-            var menus = _openedMenus.ToArray();
-            _openedMenus.Clear();
+            var menus = Interlocked.Exchange(ref _openedMenus, new());
             foreach (var menu in menus)
             {
                 menu.Dispose();
             }
+            menus.Clear();
         }
+        base.DisposeSafe(disposing);
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static unsafe bool ContextMenuCallback(IntPtr webview, IntPtr menu, GdkEvent* sourceEvent, IntPtr hitTest, IntPtr data)
+    {
+        if (data == IntPtr.Zero || GCHandle.FromIntPtr(data).Target is not GtkOffscreenAvaloniaWebViewAdapter adapter)
+        {
+            return false;
+        }
+
+        return false;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
@@ -153,10 +169,16 @@ internal unsafe class GtkOffscreenAvaloniaWebViewAdapter : GtkOffscreenWebViewAd
                             if (el is MenuItem
                                 {
                                     IsChecked: true,
-                                    DataContext: ValueTuple<GtkOptionsMenuState, uint> { Item1._menu: var menuPtr and > 0 } state
+                                    DataContext: ValueTuple<GtkOptionsMenuState, uint> state
                                 })
                             {
-                                RunOnGlibThreadAsync(() => webkit_option_menu_activate_item(menuPtr, state.Item2));
+                                RunOnGlibThreadAsync(() =>
+                                {
+                                    if (state.Item1._menu != IntPtr.Zero)
+                                    {
+                                        webkit_option_menu_activate_item(state.Item1._menu, state.Item2);
+                                    }
+                                });
                             }
                         };
                     }
