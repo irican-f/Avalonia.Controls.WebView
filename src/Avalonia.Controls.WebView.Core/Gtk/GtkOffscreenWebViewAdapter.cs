@@ -186,13 +186,13 @@ internal unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
         var (eventType, button) = point.Properties.PointerUpdateKind switch
         {
             PointerUpdateKind.LeftButtonPressed => (GdkEventType.GDK_BUTTON_PRESS, 1u),
-            PointerUpdateKind.MiddleButtonPressed => (GdkEventType.GDK_BUTTON_PRESS, 3u),
-            PointerUpdateKind.RightButtonPressed => (GdkEventType.GDK_BUTTON_PRESS, 2u),
+            PointerUpdateKind.MiddleButtonPressed => (GdkEventType.GDK_BUTTON_PRESS, 2u),
+            PointerUpdateKind.RightButtonPressed => (GdkEventType.GDK_BUTTON_PRESS, 3u),
             PointerUpdateKind.XButton1Pressed => (GdkEventType.GDK_BUTTON_PRESS, 4u),
             PointerUpdateKind.XButton2Pressed => (GdkEventType.GDK_BUTTON_PRESS, 5u),
             PointerUpdateKind.LeftButtonReleased => (GdkEventType.GDK_BUTTON_RELEASE, 1u),
-            PointerUpdateKind.MiddleButtonReleased => (GdkEventType.GDK_BUTTON_RELEASE, 3u),
-            PointerUpdateKind.RightButtonReleased => (GdkEventType.GDK_BUTTON_RELEASE, 2u),
+            PointerUpdateKind.MiddleButtonReleased => (GdkEventType.GDK_BUTTON_RELEASE, 2u),
+            PointerUpdateKind.RightButtonReleased => (GdkEventType.GDK_BUTTON_RELEASE, 3u),
             PointerUpdateKind.XButton1Released => (GdkEventType.GDK_BUTTON_RELEASE, 4u),
             PointerUpdateKind.XButton2Released => (GdkEventType.GDK_BUTTON_RELEASE, 5u),
             PointerUpdateKind.Other => (GdkEventType.GDK_MOTION_NOTIFY, 0u),
@@ -275,9 +275,9 @@ internal unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
             output |= GdkModifierType.GDK_META_MASK;
         if (pointProperties?.IsLeftButtonPressed == true)
             output |= GdkModifierType.GDK_BUTTON1_MASK;
-        if (pointProperties?.IsRightButtonPressed == true)
-            output |= GdkModifierType.GDK_BUTTON2_MASK;
         if (pointProperties?.IsMiddleButtonPressed == true)
+            output |= GdkModifierType.GDK_BUTTON2_MASK;
+        if (pointProperties?.IsRightButtonPressed == true)
             output |= GdkModifierType.GDK_BUTTON3_MASK;
         if (pointProperties?.IsXButton1Pressed == true)
             output |= GdkModifierType.GDK_BUTTON4_MASK;

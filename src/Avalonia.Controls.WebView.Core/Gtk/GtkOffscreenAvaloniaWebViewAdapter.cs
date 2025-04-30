@@ -15,12 +15,12 @@ internal unsafe class GtkOffscreenAvaloniaWebViewAdapter : GtkOffscreenWebViewAd
 {
     private static readonly IntPtr s_showOptionMenuCallback =
         new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, GdkEvent*, GdkRectangle*, IntPtr, bool>)&ShowOptionMenuCallback);
-    private static readonly IntPtr s_closedCallback =
+    private static readonly IntPtr s_optionsMenuClosedCallback =
         new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, void>)&MenuClosedCallback);
 
     private readonly Control _parent;
     private GtkSignal? _showOptionMenuSignal;
-    private HashSet<GtkOptionsMenuState> _openedMenus = new();
+    private HashSet<IDisposable> _openedMenus = new();
 
     public GtkOffscreenAvaloniaWebViewAdapter(Control parent)
     {
@@ -89,7 +89,7 @@ internal unsafe class GtkOffscreenAvaloniaWebViewAdapter : GtkOffscreenWebViewAd
             _isMouseRequest = isMouseRequest;
             _rect = rect;
             _adapter = adapter;
-            _closeSignal = new GtkSignal(menu, "close", s_closedCallback, this);
+            _closeSignal = new GtkSignal(menu, "close", s_optionsMenuClosedCallback, this);
         }
 
         public void ClosedRequested()
