@@ -281,11 +281,41 @@ internal static unsafe partial class GtkInterop
     [DllImport(LibWebKit)]
     internal static extern IntPtr webkit_uri_request_get_uri(IntPtr request);
 
+    [DllImport(LibWebKit)]
+    internal static extern void webkit_option_menu_activate_item(IntPtr menu, uint index);
+    [DllImport(LibWebKit)]
+    internal static extern void webkit_option_menu_close(IntPtr menu);
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_option_menu_get_item(IntPtr menu, uint index);
+    [DllImport(LibWebKit)]
+    internal static extern int webkit_option_menu_get_n_items(IntPtr menu);
+    [DllImport(LibWebKit)]
+    internal static extern void webkit_option_menu_select_item(IntPtr menu, uint index);
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_option_menu_item_get_label(IntPtr menuItem);
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_option_menu_item_get_tooltip(IntPtr menuItem);
+    [DllImport(LibWebKit)]
+    internal static extern bool webkit_option_menu_item_is_enabled(IntPtr menuItem);
+    [DllImport(LibWebKit)]
+    internal static extern bool webkit_option_menu_item_is_selected(IntPtr menuItem);
+    [DllImport(LibWebKit)]
+    internal static extern bool webkit_option_menu_item_is_group_child(IntPtr menuItem);
+    [DllImport(LibWebKit)]
+    internal static extern bool webkit_option_menu_item_is_group_label(IntPtr menuItem);
+
     internal struct GError
     {
         public uint Domain;
         public int Code;
         public nint Message;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct GdkRectangle
+    {
+        public int x, y;
+        public int width, height;
     }
 
     public enum GConnectFlags : int

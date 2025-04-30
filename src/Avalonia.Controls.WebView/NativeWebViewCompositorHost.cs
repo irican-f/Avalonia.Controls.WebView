@@ -12,7 +12,7 @@ namespace Avalonia.Controls;
 namespace Avalonia.Xpf.Controls;
 #endif
 
-internal class NativeWebViewCompositorHost(Func<IWebViewAdapterWithOffscreenBuffer> webViewFactory) : Control, INativeWebViewControlImpl
+internal class NativeWebViewCompositorHost(Func<NativeWebViewCompositorHost, IWebViewAdapterWithOffscreenBuffer> webViewFactory) : Control, INativeWebViewControlImpl
 {
     private TaskCompletionSource<IWebViewAdapterWithOffscreenBuffer> _webViewReadyCompletion = new();
     //private ReparentingScope? _reparentingScope;
@@ -22,7 +22,7 @@ internal class NativeWebViewCompositorHost(Func<IWebViewAdapterWithOffscreenBuff
     public static NativeWebViewCompositorHost? TryCreate()
     {
         if (OperatingSystemEx.IsLinux())
-            return new NativeWebViewCompositorHost(() => new GtkOffscreenWebViewAdapter());
+            return new NativeWebViewCompositorHost(c => new GtkOffscreenAvaloniaWebViewAdapter(c));
         return null;
     }
 
@@ -51,7 +51,7 @@ internal class NativeWebViewCompositorHost(Func<IWebViewAdapterWithOffscreenBuff
     {
         base.OnAttachedToVisualTree(e);
 
-        var adapter = webViewFactory();
+        var adapter = webViewFactory(this);
 
         var compositorVisual = ElementComposition.GetElementVisual(this)!;
         _customVisual = compositorVisual.Compositor.CreateCustomVisual(new VisualHandler(adapter));
