@@ -1,23 +1,25 @@
 ﻿#if !ANDROID && (NET6_0_OR_GREATER || NETFRAMEWORK)
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+using System.ComponentModel;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Avalonia.Controls.Win.RawWebView2;
+using Avalonia.MicroCom;
 using Avalonia.Platform;
 using Avalonia.Threading;
-using Microsoft.Web.WebView2.Core;
+using MicroCom.Runtime;
 
 namespace Avalonia.Controls.Win;
 
 [SupportedOSPlatform("windows6.1")] // win7
-internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
+internal abstract partial class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
 {
-    private CoreWebView2Controller? _controller;
+    private ICoreWebView2Controller? _controller;
     private Action? _subscriptions;
 
     protected WebView2BaseAdapter(IPlatformHandle parent)
@@ -28,37 +30,35 @@ internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
     public abstract IntPtr Handle { get; }
     public abstract string? HandleDescriptor { get; }
 
-    protected CoreWebView2? TryGetWebView2()
+    protected unsafe IWebView2WebView? TryGetWebView2()
     {
         try
         {
-            return _controller?.CoreWebView2;
+            void* webView = null;
+            _controller?.get_CoreWebView2(&webView);
+            return MicroComRuntime.CreateProxyFor<IWebView2WebView>(webView, true);
         }
-        catch (InvalidOperationException ex)
+        // That's what WPF control does.
+        catch (COMException ex) when (ex.HResult == -2147019873)
         {
-            // That's what WPF control does.
-            if (ex.InnerException?.HResult == -2147019873)
-            {
-                return null;
-            }
-
-            throw;
+            return null;
         }
     }
 
     public bool IsInitialized { get; private set; }
 
-    public bool CanGoBack => TryGetWebView2()?.CanGoBack ?? false;
+    public bool CanGoBack => true;// TryGetWebView2()?.CanGoBack ?? false;
 
-    public bool CanGoForward => TryGetWebView2()?.CanGoForward ?? false;
+    public bool CanGoForward => true;// TryGetWebView2()?.CanGoForward ?? false;
 
     public Uri Source
     {
         get
         {
-            return Uri.TryCreate(TryGetWebView2()?.Source, UriKind.Absolute, out var url) ? url : null!;
+            return WebViewHelper.EmptyPage;
+            //return Uri.TryCreate(TryGetWebView2()?.Source, UriKind.Absolute, out var url) ? url : null!;
         }
-        set => TryGetWebView2()?.Navigate(value.AbsoluteUri);
+        set => Navigate(value);
     }
 
     public event EventHandler<WebViewNavigationCompletedEventArgs>? NavigationCompleted;
@@ -89,17 +89,19 @@ internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
 
     public Task<string?> InvokeScript(string scriptName)
     {
-        return TryGetWebView2()?.ExecuteScriptAsync(scriptName) ?? Task.FromResult<string?>(null);
+        return Task.FromResult<string?>(null);
+        //return TryGetWebView2()?.ExecuteScriptAsync(scriptName) ?? Task.FromResult<string?>(null);
     }
 
-    public void Navigate(Uri url)
+    public unsafe void Navigate(Uri url)
     {
-        TryGetWebView2()?.Navigate(url.AbsoluteUri);
+        fixed (char* p = url.AbsoluteUri)
+            TryGetWebView2()?.Navigate(p);
     }
 
     public void NavigateToString(string text)
     {
-        TryGetWebView2()?.NavigateToString(text);
+        //TryGetWebView2()?.NavigateToString(text);
     }
 
     public bool Refresh()
@@ -110,7 +112,7 @@ internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
 
     public bool Stop()
     {
-        TryGetWebView2()?.Stop();
+        //TryGetWebView2()?.Stop();
         return true;
     }
 
@@ -121,8 +123,8 @@ internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
             if (PInvoke.GetWindowRect(new HWND(Handle), out var rect)
                 && _controller is not null)
             {
-                _controller.BoundsMode = CoreWebView2BoundsMode.UseRawPixels;
-                _controller.Bounds = new Rectangle(0, 0, rect.Width, rect.Height);
+                // _controller.BoundsMode = CoreWebView2BoundsMode.UseRawPixels;
+                // _controller.Bounds = new Rectangle(0, 0, rect.Width, rect.Height);
                 _controller.NotifyParentWindowPositionChanged();
             }
         });
@@ -136,94 +138,180 @@ internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
         if (parent.HandleDescriptor != "HWND")
             throw new InvalidOperationException("IPlatformHandle.HandleDescriptor must be HWND");
 
-        _controller.ParentWindow = parent.Handle;
+        //_controller.ParentWindow = parent.Handle;
+    }
+
+    enum WebView2RunTimeType { kInstalled = 0x0, kRedistributable = 0x1 }
+    private unsafe int CreateEnv(IntPtr createEnvProc, WebView2RunTimeType runTimeType, string? userDataFolder, ICoreWebView2EnvironmentOptions options, ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler envCallback)
+    {
+        var callbackPtr = envCallback.GetNativeIntPtr(true);
+        var optionsPtr = options.GetNativeIntPtr(true);
+
+        // TODO, we might want to keep userDataFolder pinned until callback is called.
+        // But it's null anyway atm, so ignoring.
+        var createEnvFunc = (delegate* unmanaged[Stdcall]<int, WebView2RunTimeType, IntPtr, IntPtr, IntPtr, int>)createEnvProc;
+        fixed (char* userDataFolderPtr = userDataFolder)
+            return createEnvFunc(1, runTimeType, new IntPtr(userDataFolderPtr), optionsPtr, callbackPtr);
     }
 
     private async void Initialize(IPlatformHandle parentHost)
     {
-        var env = await CoreWebView2Environment.CreateAsync();
+        var webViewRuntime = ManagedWebView2Loader.FindWebView2Runtime();
+        if (webViewRuntime is null)
+            return;
+
+        var lib = NativeLibrary.Load(webViewRuntime);
+        var createEnvPtr = NativeLibrary.GetExport(lib, "CreateWebViewEnvironmentWithOptionsInternal");
+
+        ICoreWebView2Environment env;
+        using (var envCallback = new WebView2EnvHandler())
+        using (var options = new Options())
+        {
+            var res = CreateEnv(createEnvPtr, WebView2RunTimeType.kInstalled, null, options, envCallback);
+            if (res != 0)
+                throw new Win32Exception(res);
+            using (var envRes = await envCallback.Result.Task)
+                env = envRes.CloneReference();
+        }
+
         var controller = await CreateWebView2Controller(env, parentHost.Handle);
-        var webView = controller.CoreWebView2;
-        await webView.AddScriptToExecuteOnDocumentCreatedAsync(
-            "function invokeCSharpAction(data){window.chrome.webview.postMessage(data);}");
-        controller.IsVisible = true;
-        controller.ShouldDetectMonitorScaleChanges = false;
+        // controller.get_CoreWebView2();
+        //await webView.AddScriptToExecuteOnDocumentCreatedAsync(
+        //    "function invokeCSharpAction(data){window.chrome.webview.postMessage(data);}");
+        controller.put_IsVisible(1);// .IsVisible = true;
+        //controller.ShouldDetectMonitorScaleChanges = false;
         _controller = controller;
 
         SizeChanged(default);
 
-        _subscriptions = AddHandlers(webView);
+        _subscriptions = AddHandlers(TryGetWebView2()!);
 
         IsInitialized = true;
         Initialized?.Invoke(this, EventArgs.Empty);
     }
 
-    protected abstract Task<CoreWebView2Controller> CreateWebView2Controller(CoreWebView2Environment env, IntPtr handle);
-
-    private Action AddHandlers(CoreWebView2 webView)
+    private class Options : CallbackBase, ICoreWebView2EnvironmentOptions
     {
-        webView.NavigationStarting += WebViewOnNavigationStarting;
-
-        void WebViewOnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
+        public unsafe void get_AdditionalBrowserArguments(char** value)
         {
-            if (Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
-            {
-                var args = new WebViewNavigationStartingEventArgs { Request = uri };
-                NavigationStarted?.Invoke(this, args);
-                if (args.Cancel) e.Cancel = true;
-            }
+//            throw new NotImplementedException();
         }
 
-        webView.NavigationCompleted += WebViewOnNavigationCompleted;
-
-        void WebViewOnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        public unsafe void put_AdditionalBrowserArguments(char* value)
         {
-            NavigationCompleted?.Invoke(this,
-                new WebViewNavigationCompletedEventArgs
-                {
-                    Request = new Uri(((CoreWebView2)sender!).Source),
-                    IsSuccess = e.IsSuccess
-                });
+            //throw new NotImplementedException();
         }
 
-        webView.WebMessageReceived += WebViewOnWebMessageReceived;
-
-        void WebViewOnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        public unsafe void get_Language(char** value)
         {
-            string? message = null;
-
-            try
-            {
-                // this `Try` method can throw undescriptive ArgumentException. Keep going WinRT.
-                message = e.TryGetWebMessageAsString();
-            }
-            catch
-            {
-                // ignore
-            }
-
-            message ??= e.WebMessageAsJson;
-
-            WebMessageReceived?.Invoke(this, new WebMessageReceivedEventArgs { Body = message });
+            //throw new NotImplementedException();
         }
 
-        webView.NewWindowRequested += WebViewOnNewWindowRequested;
-        
-        void WebViewOnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+        public unsafe void put_Language(char* value)
         {
-            if (Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
-            {
-                var args = new WebViewNewWindowRequestedEventArgs { Request = uri };
-                NewWindowRequested?.Invoke(this, args);
-                if (args.Handled) e.Handled = true;
-            }
+            //throw new NotImplementedException();
         }
+
+        public unsafe void get_TargetCompatibleBrowserVersion(char** value)
+        {
+            const string targetver = "135.0.3179.45";
+            var targetVerPtr = Marshal.StringToHGlobalUni(targetver);
+            *value = (char*)targetVerPtr.ToPointer();
+        }
+
+        public unsafe void put_TargetCompatibleBrowserVersion(char* value)
+        {
+        }
+
+        public unsafe void get_AllowSingleSignOnUsingOSPrimaryAccount(int* allow)
+        {
+            
+        }
+
+        public void put_AllowSingleSignOnUsingOSPrimaryAccount(int allow)
+        {
+            
+        }
+    }
+    
+    private class WebView2EnvHandler : CallbackBase, ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler
+    {
+        public TaskCompletionSource<ICoreWebView2Environment> Result { get; } = new();
+        public void Invoke(int errorCode, ICoreWebView2Environment result)
+        {
+            if (errorCode != 0)
+                Result?.TrySetException(new Win32Exception(errorCode));
+            else
+                Result?.TrySetResult(result);
+        }
+    }
+    
+    protected abstract Task<ICoreWebView2Controller> CreateWebView2Controller(ICoreWebView2Environment env, IntPtr handle);
+
+    private Action AddHandlers(IWebView2WebView webView)
+    {
+        // webView.NavigationStarting += WebViewOnNavigationStarting;
+        //
+        // void WebViewOnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
+        // {
+        //     if (Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
+        //     {
+        //         var args = new WebViewNavigationStartingEventArgs { Request = uri };
+        //         NavigationStarted?.Invoke(this, args);
+        //         if (args.Cancel) e.Cancel = true;
+        //     }
+        // }
+        //
+        // webView.NavigationCompleted += WebViewOnNavigationCompleted;
+        //
+        // void WebViewOnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        // {
+        //     NavigationCompleted?.Invoke(this,
+        //         new WebViewNavigationCompletedEventArgs
+        //         {
+        //             Request = new Uri(((CoreWebView2)sender!).Source),
+        //             IsSuccess = e.IsSuccess
+        //         });
+        // }
+        //
+        // webView.WebMessageReceived += WebViewOnWebMessageReceived;
+        //
+        // void WebViewOnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        // {
+        //     string? message = null;
+        //
+        //     try
+        //     {
+        //         // this `Try` method can throw undescriptive ArgumentException. Keep going WinRT.
+        //         message = e.TryGetWebMessageAsString();
+        //     }
+        //     catch
+        //     {
+        //         // ignore
+        //     }
+        //
+        //     message ??= e.WebMessageAsJson;
+        //
+        //     WebMessageReceived?.Invoke(this, new WebMessageReceivedEventArgs { Body = message });
+        // }
+        //
+        // webView.NewWindowRequested += WebViewOnNewWindowRequested;
+        //
+        // void WebViewOnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+        // {
+        //     if (Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
+        //     {
+        //         var args = new WebViewNewWindowRequestedEventArgs { Request = uri };
+        //         NewWindowRequested?.Invoke(this, args);
+        //         if (args.Handled) e.Handled = true;
+        //     }
+        // }
 
         return () =>
         {
-            webView.NavigationStarting -= WebViewOnNavigationStarting;
-            webView.NavigationCompleted -= WebViewOnNavigationCompleted;
-            webView.WebMessageReceived -= WebViewOnWebMessageReceived;
+            // webView.NavigationStarting -= WebViewOnNavigationStarting;
+            // webView.NavigationCompleted -= WebViewOnNavigationCompleted;
+            // webView.WebMessageReceived -= WebViewOnWebMessageReceived;
         };
     }
 
@@ -231,22 +319,23 @@ internal abstract class WebView2BaseAdapter : IWebViewAdapterWithCookieManager
     {
         if (TryGetWebView2() is { } webView)
         {
-            var webViewCookie = webView.CookieManager.CreateCookieWithSystemNetCookie(cookie);
-            webView.CookieManager.AddOrUpdateCookie(webViewCookie);
+            // var webViewCookie = webView.CookieManager.CreateCookieWithSystemNetCookie(cookie);
+            // webView.CookieManager.AddOrUpdateCookie(webViewCookie);
         }
     }
 
     public void DeleteCookie(string name, string domain, string path)
     {
-        TryGetWebView2()?.CookieManager.DeleteCookiesWithDomainAndPath(name, domain, path);
+        //TryGetWebView2()?.CookieManager.DeleteCookiesWithDomainAndPath(name, domain, path);
     }
 
-    public async Task<IReadOnlyList<Cookie>> GetCookiesAsync()
+    public Task<IReadOnlyList<Cookie>> GetCookiesAsync()
     {
-        if (TryGetWebView2() is not { } webView)
-            return [];
-        var cookies = await webView.CookieManager.GetCookiesAsync(null);
-        return cookies.Select(c => c.ToSystemNetCookie()).ToArray();
+        return Task.FromResult<IReadOnlyList<Cookie>>([]);
+        // if (TryGetWebView2() is not { } webView)
+        //     return [];
+        // var cookies = await webView.CookieManager.GetCookiesAsync(null);
+        // return cookies.Select(c => c.ToSystemNetCookie()).ToArray();
     }
 
     protected virtual void Dispose(bool disposing)

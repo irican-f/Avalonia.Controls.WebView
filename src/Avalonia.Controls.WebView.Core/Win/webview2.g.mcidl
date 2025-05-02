@@ -51,23 +51,23 @@ interface ICoreWebView2EnvironmentOptions : IUnknown
 }
 
 [uuid(4E8A3389-C9D8-4BD2-B6B5-124FEE6CC14D)]
-interface ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler
+interface ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler : IUnknown
 {
     HRESULT Invoke(HRESULT errorCode, ICoreWebView2Environment* result);
 }
 
 [uuid(B96D755E-0319-4E92-A296-23436F46A1FC)]
-interface ICoreWebView2Environment
+interface ICoreWebView2Environment : IUnknown
 {
-    HRESULT CreateCoreWebView2Controller(HWND parentWindow, ICoreWebView2CreateCoreWebView2ControllerCompletedHandler* handler);
+    int CreateCoreWebView2Controller(HWND parentWindow, ICoreWebView2CreateCoreWebView2ControllerCompletedHandler* handler);
     HRESULT CreateWebResourceResponse(void* content, int statusCode, LPCWSTR reasonPhrase, LPCWSTR headers, void** response);
     HRESULT get_BrowserVersionString(LPWSTR * versionInfo);
 }
 
 [uuid(6C4819F3-C9B7-4260-8127-C9F5BDE7F68C)]
-interface ICoreWebView2CreateCoreWebView2ControllerCompletedHandler
+interface ICoreWebView2CreateCoreWebView2ControllerCompletedHandler : IUnknown
 {
-    HRESULT Invoke(HRESULT errorCode, ICoreWebView2Controller * result);
+    int Invoke(HRESULT errorCode, ICoreWebView2Controller * result);
 }
 
 [uuid(4D00C0D1-9434-4EB6-8078-8697A560334F)]

@@ -1,4 +1,4 @@
-﻿#if WINDOWS
+﻿#if NOPE
 using System;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;

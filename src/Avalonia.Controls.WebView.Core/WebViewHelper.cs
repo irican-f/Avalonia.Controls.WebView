@@ -28,8 +28,9 @@ internal class WebViewHelper
 #if !NETSTANDARD2_0 && !ANDROID
         try
         {
-            var versionString = Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString();
-            return !string.IsNullOrWhiteSpace(versionString);
+            return true;
+            //var versionString = Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString();
+            //return !string.IsNullOrWhiteSpace(versionString);
         }
 #pragma warning disable CA1031
         catch (Exception)
