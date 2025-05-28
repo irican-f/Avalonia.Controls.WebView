@@ -96,7 +96,7 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
     public Task<string?> InvokeScript(string script)
     {
         var tcs = new TaskCompletionSource<string?>();
-        _webView.EvaluateJavascript(script, new JavaScriptValueCallback(tcs));
+        _webView.EvaluateJavascript(script, new AndroidJavaScriptValueCallback(tcs));
         return tcs.Task;
     }
 
@@ -229,14 +229,13 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
                 new WebViewNavigationCompletedEventArgs { Request = uri, IsSuccess = true });
         }
     }
-
-    private class JavaScriptValueCallback(TaskCompletionSource<string?> callback) : Java.Lang.Object, IValueCallback
-    {
-        public void OnReceiveValue(Java.Lang.Object? value)
-        {
-            callback.SetResult(value?.ToString());
-        }
-    }
 }
 
+internal class AndroidJavaScriptValueCallback(TaskCompletionSource<string?> callback) : Java.Lang.Object, IValueCallback
+{
+    public void OnReceiveValue(Java.Lang.Object? value)
+    {
+        callback.SetResult(value?.ToString());
+    }
+}
 #endif
