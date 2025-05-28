@@ -16,6 +16,11 @@ namespace System.Runtime.InteropServices.Marshalling
             return Marshal.GetComInterfaceForObject<TManaged, TInterface>(obj).ToPointer();
         }
 
+        public static TInterface ConvertToManaged(void* obj)
+        {
+            return (TInterface)Marshal.GetObjectForIUnknown(new IntPtr(obj));
+        }
+
         public static void Free(void* native)
         {
             Marshal.Release(new IntPtr(native));

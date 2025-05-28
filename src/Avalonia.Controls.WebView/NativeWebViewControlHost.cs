@@ -46,10 +46,10 @@ namespace Avalonia.Xpf.Controls
             {
                 adapter = new Core.Win.WebView2.WebView2HwndAdapter(base.CreateNativeControlCore(parent));
             }
-            //else if (OperatingSystemEx.IsWindows() && WebViewCapabilities.IsMsWebView1Available)
-            //{
-            //    adapter = new Core.Win.WebView1Adapter(base.CreateNativeControlCore(parent));
-            //}
+            else if (OperatingSystemEx.IsWindows() && Core.Win.WebView1.WebView1Adapter.IsAvailable)
+            {
+                adapter = new Core.Win.WebView1.WebView1Adapter(base.CreateNativeControlCore(parent));
+            }
             //else if (OperatingSystemEx.IsWindows() && IE Supported)
             //{
             //}

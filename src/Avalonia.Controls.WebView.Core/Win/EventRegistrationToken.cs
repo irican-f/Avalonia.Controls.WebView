@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Avalonia.Controls.Win.WebView2.Interop;
+namespace Avalonia.Controls.Win;
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 internal struct EventRegistrationToken
