@@ -37,7 +37,6 @@ internal static class ManagedWebView2Loader
             var runtimePath = FindRuntimeInRegistry(RegistryHive.LocalMachine, channel.Key);
             if (!string.IsNullOrEmpty(runtimePath))
             {
-                Console.WriteLine($"Found WebView2 {channel.Value} runtime at: {runtimePath}");
                 return runtimePath;
             }
         }
@@ -48,7 +47,6 @@ internal static class ManagedWebView2Loader
             var runtimePath = FindRuntimeInRegistry(RegistryHive.CurrentUser, channel.Key);
             if (!string.IsNullOrEmpty(runtimePath))
             {
-                Console.WriteLine($"Found WebView2 {channel.Value} runtime at: {runtimePath}");
                 return runtimePath;
             }
         }
