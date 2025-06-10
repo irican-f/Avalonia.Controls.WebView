@@ -62,7 +62,8 @@ internal abstract partial class WebView2BaseAdapter : IWebViewAdapterWithCookieM
     {
         add
         {
-            if (TryGetWebView2() is { } webView2)
+            if (TryGetWebView2() is { } webView2
+                && _webResourceRequested is null)
             {
                 webView2.AddWebResourceRequestedFilter("*", 0);
             }
