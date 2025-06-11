@@ -7,9 +7,9 @@ using static Avalonia.Controls.Gtk.GtkInterop;
 
 namespace Avalonia.Controls.Gtk;
 
-internal sealed class SoupHttpHeaders(IntPtr headers) : INativeHttpRequestHeaders
+internal sealed class SoupHttpHeaders(IntPtr headers, bool immutable) : INativeHttpRequestHeaders
 {
-    public bool Immutable => false;
+    public bool Immutable => immutable;
 
     public bool TryClear()
     {
@@ -47,60 +47,34 @@ internal sealed class SoupHttpHeaders(IntPtr headers) : INativeHttpRequestHeader
 
     public string? GetHeader(string name)
     {
-        var namePtr = Marshal.StringToHGlobalAnsi(name);
-        try
-        {
-            var handle = soup_message_headers_get_list(headers, namePtr);
-            return Marshal.PtrToStringAnsi(handle);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(namePtr);
-        }
+        return soup_message_headers_get_list(headers, name);
     }
 
     public bool Contains(string name)
     {
-        var namePtr = Marshal.StringToHGlobalAnsi(name);
-        try
-        {
-            var handle = soup_message_headers_get_one(headers, namePtr);
-            return !string.IsNullOrEmpty(Marshal.PtrToStringAnsi(handle));
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(namePtr);
-        }
+        var value = soup_message_headers_get_one(headers, name);
+        return !string.IsNullOrEmpty(value);
     }
 
     public bool TrySetHeader(string name, string value)
     {
-        var namePtr = Marshal.StringToHGlobalAnsi(name);
-        var valuePtr = Marshal.StringToHGlobalAnsi(value);
-        try
-        {
-            soup_message_headers_replace(headers, namePtr, valuePtr);
-            return true;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(valuePtr);
-            Marshal.FreeHGlobal(namePtr);
-        }
+        if (immutable)
+            return false;
+        soup_message_headers_replace(headers, name, value);
+        return true;
     }
 
     public bool TryRemoveHeader(string name)
     {
-        var namePtr = Marshal.StringToHGlobalAnsi(name);
-        try
+        if (immutable)
+            return false;
+        if (Contains(name))
         {
-            soup_message_headers_remove(headers, namePtr);
+            soup_message_headers_remove(headers, name);
             return true;
         }
-        finally
-        {
-            Marshal.FreeHGlobal(namePtr);
-        }
+
+        return false;
     }
 
     public unsafe INativeHttpHeadersCollectionIterator GetIterator()
