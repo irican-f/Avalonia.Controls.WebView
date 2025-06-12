@@ -23,6 +23,49 @@ internal static unsafe partial class GtkInterop
     internal static extern uint g_log_set_handler(string? logDomain, uint logLevels, IntPtr callback, IntPtr userData);
 #endif
 
+#if NET7_0_OR_GREATER
+    [LibraryImport(LibWebKit, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial IntPtr webkit_website_data_manager_new(
+        string prop1Key, string prop1Value,
+        string prop2Key, string prop2Value,
+        IntPtr nil);
+    [LibraryImport(LibWebKit, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial IntPtr webkit_website_data_manager_new(
+        string prop1Key, string prop1Value,
+        IntPtr nil);
+#else
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_website_data_manager_new(
+        string prop1Key, string prop1Value,
+        string prop2Key, string prop2Value,
+        IntPtr nil);
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_website_data_manager_new(
+        string prop1Key, string prop1Value,
+        IntPtr nil);
+#endif
+
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_web_context_new_with_website_data_manager(IntPtr dataManager);
+
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_web_context_new();
+
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_web_context_new_ephemeral();
+
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_web_context_get_default();
+
+    [DllImport(LibWebKit)]
+    internal static extern void webkit_web_context_set_process_model(IntPtr context, int value);
+
+    [DllImport(LibWebKit)]
+    internal static extern void webkit_web_context_set_cache_model(IntPtr context, int value);
+
+    [DllImport(LibWebKit)]
+    internal static extern IntPtr webkit_web_view_new_with_context(IntPtr context);
+    
     [DllImport(LibWebKit)]
     internal static extern void webkit_settings_set_enable_developer_extras(IntPtr webView, bool enabled);
 
@@ -40,15 +83,6 @@ internal static unsafe partial class GtkInterop
 
     [DllImport(LibGio)]
     internal static extern IntPtr g_application_get_default();
-
-    [DllImport(LibWebKit)]
-    internal static extern IntPtr webkit_web_view_new();
-
-    [DllImport(LibWebKit)]
-    internal static extern IntPtr webkit_web_view_new_with_user_content_manager(IntPtr manager);
-
-    [DllImport(LibWebKit)]
-    internal static extern IntPtr webkit_user_content_manager_new();
 
     [DllImport(LibWebKit)]
     internal static extern IntPtr webkit_web_view_get_user_content_manager(IntPtr webView);

@@ -175,7 +175,58 @@ internal class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebViewPlatform
 
     protected virtual void InitializeSafe()
     {
-        var contentManager = webkit_user_content_manager_new();
+        IntPtr context;
+        if (EnvironmentArgs.EphemeralDataManager
+                || EnvironmentArgs.BaseDataDirectory is { Length: >0}
+                 || EnvironmentArgs.BaseCacheDirectory is { Length: >0}
+                 || !EnvironmentArgs.SharedProcessModel
+                 || EnvironmentArgs.DisableCache)
+        {
+            if (EnvironmentArgs.EphemeralDataManager)
+            {
+                context = webkit_web_context_new_ephemeral();
+            }
+            else if (EnvironmentArgs is { BaseDataDirectory.Length: > 0, BaseCacheDirectory.Length: > 0 })
+            {
+                context = webkit_web_context_new_with_website_data_manager(webkit_website_data_manager_new(
+                    "base-data-directory", EnvironmentArgs.BaseDataDirectory,
+                    "base-cache-directory", EnvironmentArgs.BaseCacheDirectory,
+                    IntPtr.Zero));
+            }
+            else if (EnvironmentArgs.BaseDataDirectory is { Length: > 0 })
+            {
+                context = webkit_web_context_new_with_website_data_manager(webkit_website_data_manager_new(
+                    "base-data-directory", EnvironmentArgs.BaseDataDirectory,
+                    IntPtr.Zero));
+            }
+            else if (EnvironmentArgs.BaseCacheDirectory is { Length: > 0 })
+            {
+                context = webkit_web_context_new_with_website_data_manager(webkit_website_data_manager_new(
+                    "base-data-directory", EnvironmentArgs.BaseCacheDirectory,
+                    IntPtr.Zero));
+            }
+            else
+            {
+                context = webkit_web_context_new();
+            }
+
+            if (EnvironmentArgs.DisableCache)
+            {
+                webkit_web_context_set_cache_model(context, 0 /*WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER*/);
+            }
+            if (!EnvironmentArgs.SharedProcessModel)
+            {
+                webkit_web_context_set_process_model(context, 1 /*WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES*/);
+            }
+        }
+        else
+        {
+            context = webkit_web_context_get_default();
+        }
+
+        WebViewHandle = webkit_web_view_new_with_context(context);
+
+        var contentManager = webkit_web_view_get_user_content_manager(WebViewHandle);
         _scriptMessageReceivedSignal = new GtkSignal(contentManager, $"script-message-received::{PostAvWebViewMessageName}", s_scriptMessageReceivedCallback, this);
         webkit_user_content_manager_register_script_message_handler(contentManager, PostAvWebViewMessageName);
 
@@ -190,7 +241,6 @@ internal class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebViewPlatform
             0, 0, IntPtr.Zero, IntPtr.Zero);
         webkit_user_content_manager_add_script(contentManager, script);
 
-        WebViewHandle = webkit_web_view_new_with_user_content_manager(contentManager);
         g_object_ref_sink(WebViewHandle);
 
         if (EnvironmentArgs.EnableDevTools)
