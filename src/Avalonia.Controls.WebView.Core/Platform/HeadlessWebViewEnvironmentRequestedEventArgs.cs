@@ -33,5 +33,5 @@ internal class HeadlessWebViewEnvironmentRequestedEventArgs : WebViewEnvironment
         GetHtmlContent
     }
 
-    public record HttpResult(bool IsSuccess, string Content);
+    public record HttpResult(bool IsSuccess, string Content = "", Uri? RedirectUri = null);
 }
