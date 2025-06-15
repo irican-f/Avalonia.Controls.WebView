@@ -9,6 +9,7 @@ using Avalonia.Controls.Macios.Interop.WebKit;
 using Avalonia.Controls.Utils;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
 
@@ -70,6 +71,7 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
         _navDelegate.DecidePolicyNavigation += OnDelegateOnDecidePolicyNavigation;
 
         _webView = new WKWebView(_config) { NavigationDelegate = _navDelegate };
+        _webView.Opaque = true;
         _webView.PerformKeyEquivalent += WebViewOnPerformKeyEquivalent;
         _webView.BecomeFirstResponder += OnWebViewOnBecomeFirstResponder;
         _webView.ResignFirstResponder += OnWebViewOnResignFirstResponder;
@@ -176,6 +178,16 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
         {
             _webView.Dispose();
         }, DispatcherPriority.Background);
+    }
+
+    public Color DefaultBackground
+    {
+        set
+        {
+            using var color = AppleColor.FromRGBA(
+                value.R / 255f, value.G / 255f, value.B / 255f, value.A / 255f);
+            _webView.BackgroundColor = color;
+        }
     }
 
     public void SizeChanged(PixelSize containerSize)

@@ -7,9 +7,9 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Windows.Win32;
 using Windows.Win32.Foundation;
-using Avalonia.Controls.Platform;
 using Avalonia.Controls.Win.WebView2.Interop;
 using Avalonia.Logging;
+using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
 
@@ -81,6 +81,23 @@ internal abstract partial class WebView2BaseAdapter : IWebViewAdapterWithCookieM
     }
 
     public event EventHandler? Initialized;
+
+    public Color DefaultBackground
+    {
+        set
+        {
+            if (_controller is ICoreWebView2Controller2 controller2)
+            {
+                controller2.SetDefaultBackgroundColor(new COREWEBVIEW2_COLOR
+                {
+                    A = value.A,
+                    R = value.R,
+                    G = value.G,
+                    B = value.B,
+                });
+            }
+        }
+    }
 
     public bool GoBack()
     {
@@ -175,12 +192,10 @@ internal abstract partial class WebView2BaseAdapter : IWebViewAdapterWithCookieM
     internal EventHandler<WebResourceRequestedEventArgs>? GetWebResourceRequested() => _webResourceRequested;
     internal EventHandler<WebViewNewWindowRequestedEventArgs>? GetNewWindowRequested() => NewWindowRequested;
 
-    private async void Initialize(IPlatformHandle parentHost, WindowsWebView2EnvironmentRequestedEventArgs environmentArgs)
     {
         try
         {
             var env = await CoreWebView2Environment.CreateAsync(environmentArgs);
-            var controller = await CreateWebView2Controller(env, parentHost.Handle, environmentArgs);
             var webView = controller.GetCoreWebView2();
 
             var addScriptCompletion = new AddScriptToExecuteOnDocumentCreatedCompletedHandler();
@@ -227,7 +242,6 @@ internal abstract partial class WebView2BaseAdapter : IWebViewAdapterWithCookieM
     }
 
     protected abstract Task<ICoreWebView2Controller> CreateWebView2Controller(ICoreWebView2Environment env,
-        IntPtr handle, WindowsWebView2EnvironmentRequestedEventArgs environmentArgs);
 
     private Action AddHandlers(ICoreWebView2 webView)
     {

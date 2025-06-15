@@ -30,6 +30,10 @@ internal abstract unsafe class AppleView : NSManagedObjectBase
     private static readonly IntPtr s_windowMakeFirstResponder = Libobjc.sel_getUid("makeFirstResponder:");
     private static readonly IntPtr s_windowFirstResponder = Libobjc.sel_getUid("firstResponder");
     private static readonly IntPtr s_removeFromSuperview = Libobjc.sel_getUid("removeFromSuperview");
+    private static readonly IntPtr s_backgroundColor =  Libobjc.sel_getUid("backgroundColor");
+    private static readonly IntPtr s_setBackgroundColor =  Libobjc.sel_getUid("setBackgroundColor:");
+    private static readonly IntPtr s_opaque =  Libobjc.sel_getUid("opaque");
+    private static readonly IntPtr s_setOpaque =  Libobjc.sel_getUid("setOpaque:"); 
 
     protected static void RegisterMethods(IntPtr thisClass)
     {
@@ -75,6 +79,18 @@ internal abstract unsafe class AppleView : NSManagedObjectBase
 
             return false;
         }
+    }
+
+    public AppleColor BackgroundColor
+    {
+        get => AppleColor.FromHandle(Libobjc.intptr_objc_msgSend(Handle, s_backgroundColor));
+        set => Libobjc.void_objc_msgSend(Handle, s_setBackgroundColor, value.Handle);
+    }
+
+    public bool Opaque
+    {
+        get => Libobjc.int_objc_msgSend(Handle, s_opaque) == 1;
+        set => Libobjc.void_objc_msgSend(Handle, s_setOpaque, value ? 1 : 0);
     }
 
     public void Copy() => Libobjc.void_objc_msgSend(Handle, s_copy);

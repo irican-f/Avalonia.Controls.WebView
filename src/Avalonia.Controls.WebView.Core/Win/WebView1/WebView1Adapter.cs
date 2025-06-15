@@ -9,6 +9,7 @@ using Avalonia.Controls.Platform;
 using Avalonia.Controls.Win.WebView1.Interop;
 using Avalonia.Controls.Win.WebView2;
 using Avalonia.Logging;
+using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
 
@@ -163,6 +164,20 @@ internal sealed class WebView1Adapter : IWebViewAdapter, IWindowsWebView1Platfor
     {
         _webViewControl?.Stop();
         return true;
+    }
+
+    public Color DefaultBackground
+    {
+        set
+        {
+            _webViewControl?.put_DefaultBackgroundColor(new winrtColor
+            {
+                A = value.A,
+                R = value.R,
+                G = value.G,
+                B = value.B,
+            });
+        }
     }
 
     public void SizeChanged(PixelSize containerSize)
