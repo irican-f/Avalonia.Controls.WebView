@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Windows.Controls;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
 
 #elif AVALONIA
