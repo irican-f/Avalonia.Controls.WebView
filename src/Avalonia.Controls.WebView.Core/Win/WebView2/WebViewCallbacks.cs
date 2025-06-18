@@ -45,19 +45,11 @@ internal partial class WebViewCallbacks(WeakReference<WebView2BaseAdapter> weakA
         if (weakAdapter.TryGetTarget(out var adapter)
             && adapter.GetWebMessageReceived() is { } handler)
         {
-            string? message = null;
-
-            try
+            // this `Try` method can throw undescriptive ArgumentException. Keep going WinRT.
+            if (e.TryGetWebMessageAsString(out var message) != 0)
             {
-                // this `Try` method can throw undescriptive ArgumentException. Keep going WinRT.
-                message = e.TryGetWebMessageAsString();
+                message = e.WebMessageAsJson();
             }
-            catch
-            {
-                // ignore
-            }
-
-            message ??= e.WebMessageAsJson();
 
             handler.Invoke(adapter, new WebMessageReceivedEventArgs { Body = message });
         }

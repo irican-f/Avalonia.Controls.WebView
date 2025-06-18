@@ -6,11 +6,13 @@
     </TargetFrameworks>
     <DefineConstants>$(DefineConstants);AVALONIA</DefineConstants>
     <RootNamespace>Avalonia.Controls</RootNamespace>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <CopyLocalLockFileAssemblies Condition="'$(ILMergeBuild)' == 'true'">true</CopyLocalLockFileAssemblies>
     <AndroidGenerateResourceDesigner>false</AndroidGenerateResourceDesigner>
+    <AvnLicensingEmitBuildTime>true</AvnLicensingEmitBuildTime>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AvaloniaUI.Licensing" Version="2.0.0-cibuild000076" />
     <ProjectReference Include="..\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" PrivateAssets="all" />
   </ItemGroup>
 

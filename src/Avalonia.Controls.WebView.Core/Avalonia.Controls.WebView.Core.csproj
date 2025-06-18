@@ -14,7 +14,6 @@
     <PolySharpExcludeGeneratedTypes>System.Diagnostics.CodeAnalysis.UnscopedRefAttribute</PolySharpExcludeGeneratedTypes>
     <CopyLocalLockFileAssemblies Condition="'$(ILMergeBuild)' == 'true'">true</CopyLocalLockFileAssemblies>
     <AndroidGenerateResourceDesigner>false</AndroidGenerateResourceDesigner>
-    <AvnLicensingEmitBuildTime>true</AvnLicensingEmitBuildTime>
     <DefineConstants Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">$(DefineConstants);COM_SOURCE_GEN</DefineConstants>
     <!-- https://github.com/dotnet/runtime/issues/90922 -->
     <NoWarn>$(NoWarn);CA2256</NoWarn>
