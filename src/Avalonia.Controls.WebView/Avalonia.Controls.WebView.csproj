@@ -8,6 +8,7 @@
     <RootNamespace>Avalonia.Controls</RootNamespace>
     <CopyLocalLockFileAssemblies Condition="'$(ILMergeBuild)' == 'true'">true</CopyLocalLockFileAssemblies>
     <AndroidGenerateResourceDesigner>false</AndroidGenerateResourceDesigner>
+    <AvnLicensingEmitBuildTime>true</AvnLicensingEmitBuildTime>
   </PropertyGroup>
 
   <ItemGroup>
