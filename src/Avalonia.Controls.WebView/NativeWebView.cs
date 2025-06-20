@@ -356,7 +356,7 @@ namespace Avalonia.Xpf.Controls
 #if WPF
             // Due to differences in initialization order between Avalonia and WPF, we delay adapter creation on WPF,
             // because it's happening way too early there, even before subscribers were ready  
-            => Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+            => Dispatcher.InvokeAsync(() =>
 #endif
         {
             var adapterFactory = Core.WebViewAdapter.CreateFactory(args => EnvironmentRequested?.Invoke(this, args));
@@ -371,15 +371,18 @@ namespace Avalonia.Xpf.Controls
 
             controlHostImpl.AdapterCreated += ControlHostImplOnAdapterCreated;
             controlHostImpl.AdapterDestroyed += ControlHostImplOnAdapterDeinitialized;
+
+            _controlHostImplTcs.TrySetResult(controlHostImpl);
+
 #if AVALONIA
             VisualChildren.Add((Control)controlHostImpl);
 #elif WPF
             IsVisibleChanged += OnIsVisibleChanged;
-            AddVisualChild((System.Windows.Media.Visual)controlHostImpl);
-            AddLogicalChild((System.Windows.Media.Visual)controlHostImpl);
+            var visual = (System.Windows.Media.Visual)controlHostImpl;
+            AddVisualChild(visual);
+            AddLogicalChild(visual);
+            OnVisualChildrenChanged(visual, null);
 #endif
-
-            _controlHostImplTcs.TrySetResult(controlHostImpl);
         }
 #if WPF
         );
