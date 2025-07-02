@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -29,7 +30,7 @@ class Build : NukeBuild
 
     [NuGetPackage("dotnet-ilrepack", "ILRepackTool.dll", Framework = "net8.0")] readonly Tool IlRepackTool;
 
-    [PathVariable] readonly Tool Babel;
+    [NuGetPackage("Babel.Obfuscator.Tool", "babel.dll", Framework = "net9.0")] readonly Tool Babel;
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = Configuration.Release;
@@ -123,30 +124,56 @@ class Build : NukeBuild
         .OnlyWhenStatic(() => OperatingSystem.IsWindows() || !IsLocalBuild)
         .Executes(() =>
         {
-            if (!OperatingSystem.IsWindows() && !IsLocalBuild)
-            {
-                throw new InvalidOperationException("Babel requires Windows CI machine");
-            }
-
             string[] projectsToObfuscate =
             [
                 "Avalonia.Controls.WebView",
                 "Avalonia.Xpf.Controls.WebView"
             ];
-            foreach (var projectName in projectsToObfuscate)
+            var licenseEnvValue = Environment.GetEnvironmentVariable("BABEL_LICENSE");
+            AbsolutePath licenseFile;
+            bool tempLicense = false;
+            if (File.Exists(licenseEnvValue))
             {
-                Log.Information("Obfuscating {Project}", projectName);
+                licenseFile = licenseEnvValue;
+            }
+            else if (!string.IsNullOrWhiteSpace(licenseEnvValue))
+            {
+                licenseFile = TemporaryDirectory / "babel.license";
+                File.WriteAllText(licenseFile, licenseEnvValue);
+                tempLicense = true;
+            }
+            else
+            {
+                throw new Exception("Babel license is missing");
+            }
 
-                var projectRoot = RootDirectory / "src" / projectName;
-                var obfuscationMapFile = RootDirectory / "Obfuscated" / (projectName + ".ObfuscationMap.xml");
-                var obfuscationLogFile = RootDirectory / "Obfuscated" / (projectName + ".Obfuscation.log");
-                var rules = RootDirectory / "build" / "Babel.rules";
-
-                foreach (var buildOutput in (projectRoot / "bin" / Configuration).GlobDirectories("net*"))
+            try
+            {
+                foreach (var projectName in projectsToObfuscate)
                 {
-                    var dllFile = buildOutput / (projectName + ".dll");
-                    
-                    Babel($"{dllFile} --nologo --rules {rules} --output {dllFile}  --mapout {obfuscationMapFile} --logfile {obfuscationLogFile}", RootDirectory);
+                    Log.Information("Obfuscating {Project}", projectName);
+
+                    var projectRoot = RootDirectory / "src" / projectName;
+                    var obfuscationMapFile = RootDirectory / "Obfuscated" / (projectName + ".ObfuscationMap.xml");
+                    var obfuscationLogFile = RootDirectory / "Obfuscated" / (projectName + ".Obfuscation.log");
+                    var rules = RootDirectory / "build" / "Babel.rules";
+                    var signKey = RootDirectory / "build" / "avalonia.snk";
+
+                    foreach (var buildOutput in (projectRoot / "bin" / Configuration).GlobDirectories("net*"))
+                    {
+                        var dllFile = buildOutput / (projectName + ".dll");
+
+                        Babel(
+                            $"{dllFile} --nologo --license {licenseFile} --rules {rules} --keyfile {signKey} --output {dllFile}  --mapout {obfuscationMapFile} --logfile {obfuscationLogFile}",
+                            RootDirectory);
+                    }
+                }
+            }
+            finally
+            {
+                if (tempLicense)
+                {
+                    licenseFile.DeleteFile();
                 }
             }
         });
