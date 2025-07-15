@@ -16,6 +16,7 @@
     <PackageDownload Include="dotnet-ilrepack" Version="[1.0.0]" />
     <PackageDownload Include="Microsoft.Android.Ref.34" Version="[34.0.148]" />
     <PackageDownload Include="Babel.Obfuscator.Tool" Version="[10.9.0]" />
+    <PackageReference Include="Semver" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

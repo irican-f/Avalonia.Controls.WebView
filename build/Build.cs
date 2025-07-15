@@ -14,6 +14,7 @@ using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.PowerShell;
+using Semver;
 using Serilog;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
@@ -248,14 +249,14 @@ class Build : NukeBuild
 
         var refName =  Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
         // Release tag
-        if (Version.TryParse(refName, out var tagVersion))
+        if (SemVersion.TryParse(refName, out var tagVersion))
         {
             return tagVersion.ToString();
         }
         // Release branch
-        else if (Regex.Match(refName ?? "", """release\/(?<ver>[\d\.]*)""") is { Success: true } match)
+        else if (SemVersion.TryParse(refName?.Replace("release/", "") ?? "", out var releaseVersion))
         {
-            return match.Groups["ver"].Value;
+            return releaseVersion.ToString();
         }
         // CI build number
         else if (int.TryParse(Environment.GetEnvironmentVariable("GITHUB_RUN_NUMBER"), out var ciRun))
