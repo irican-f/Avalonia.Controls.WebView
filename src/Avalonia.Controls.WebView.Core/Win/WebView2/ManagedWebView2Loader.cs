@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Avalonia.Logging;
 using Microsoft.Win32;
@@ -115,7 +116,14 @@ internal static class ManagedWebView2Loader
     private static string ComputeDllPath(string browserFolder)
     {
         // Construct the path to the actual DLL based on architecture
-        var architecture = Environment.Is64BitProcess ? "x64" : "x86";
+        var architecture = RuntimeInformation.ProcessArchitecture switch
+        {
+            Architecture.Arm => "arm",
+            Architecture.Arm64 => "arm64",
+            Architecture.X64 => "x64",
+            Architecture.X86 => "x86",
+            _ => "x64"
+        };
         var dllPath = Path.Combine(browserFolder, "EBWebView", architecture, "EmbeddedBrowserWebView.dll");
         return dllPath;
     }
