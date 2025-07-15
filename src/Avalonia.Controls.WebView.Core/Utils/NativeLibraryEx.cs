@@ -9,11 +9,26 @@ internal class NativeLibraryEx
 {
 #if NET6_0_OR_GREATER
     public static IntPtr Load(string dll, Assembly assembly) => NativeLibrary.Load(dll, assembly, null);
+    public static bool TryLoad(string dll, out IntPtr result) => NativeLibrary.TryLoad(dll, out result);
     public static IntPtr Load(string dll) => NativeLibrary.Load(dll);
     public static bool TryGetExport(IntPtr handle, string name, out IntPtr address) =>
         NativeLibrary.TryGetExport(handle, name, out address);
 #else
     public static IntPtr Load(string dll, Assembly assembly) => Load(dll);
+
+    public static bool TryLoad(string dll, out IntPtr result)
+    {
+        try
+        {
+            result = DlOpen!(dll);
+            return result != IntPtr.Zero;
+        }
+        catch
+        {
+            result = IntPtr.Zero;
+            return false;
+        }
+    }
 
     public static IntPtr Load(string dll)
     {

@@ -90,7 +90,13 @@ internal static partial class CoreWebView2Environment
             return IntPtr.Zero;
         }
 
-        var lib = NativeLibraryEx.Load(webViewRuntime);
+        if (!NativeLibraryEx.TryLoad(webViewRuntime, out var lib))
+        {
+            Logger.TryGet(LogEventLevel.Warning, "WebView")
+                ?.Log(null, "WebView2 runtime was found, but unable to load from {RuntimePath}.", webViewRuntime);
+            return IntPtr.Zero;
+        }
+
         if (!NativeLibraryEx.TryGetExport(lib, "CreateWebViewEnvironmentWithOptionsInternal", out var createEnvPtr))
         {
             Logger.TryGet(LogEventLevel.Warning, "WebView")
