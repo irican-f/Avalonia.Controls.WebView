@@ -8,11 +8,13 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 #elif WPF
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Controls;
+using Microsoft.Win32;
 #endif
 using AC = Avalonia.Controls;
 using AP = Avalonia.Platform;
@@ -114,7 +116,7 @@ public partial class MainView : UserControl
         LogList.Text += "\r\nInputElement_OnKeyDown " + e.Key + " " + GetKeyModifiers(e);
     }
 
-    private void View_OnKeyDown(object? sender, KeyEventArgs e)
+    private async void View_OnKeyDown(object? sender, KeyEventArgs e)
     {
         var modifiers = GetKeyModifiers(e);
         LogList.Text += "\r\nWindow_OnKeyDown " + e.Key + " " + modifiers;
@@ -122,6 +124,44 @@ public partial class MainView : UserControl
         if (e is { Key: Key.P }
 #if AVALONIA
             && modifiers.HasFlag(KeyModifiers.Control))
+#elif WPF
+            && modifiers.HasFlag(ModifierKeys.Control))
+#endif
+        {
+            try
+            {
+                var page = await WebView.PrintToPdfStreamAsync();
+
+#if AVALONIA
+                var storage = TopLevel.GetTopLevel(this)!.StorageProvider;
+                var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    DefaultExtension = ".pdf",
+                    FileTypeChoices = [new FilePickerFileType("Pdf") { Patterns = [".pdf"] }]
+                });
+                if (file is not null)
+                {
+                    await using var writeStream = await file.OpenWriteAsync();
+                    await page.CopyToAsync(writeStream);
+                }
+#elif WPF
+                var saveFileDialog = new SaveFileDialog { DefaultExt = ".pdf", Filter = "PDF files (*.pdf)|*.pdf" };
+                saveFileDialog.ShowDialog();
+                if (saveFileDialog.FileName is { } fileName)
+                {
+                    await using var writeStream = saveFileDialog.OpenFile();
+                    await page.CopyToAsync(writeStream);
+                }
+#endif
+            }
+            catch (Exception ex)
+            {
+                LogList.Text += "\r\nPrint failed " + ex;
+            }
+        }
+        else if (e is { Key: Key.R }
+#if AVALONIA
+                         && modifiers.HasFlag(KeyModifiers.Control))
 #elif WPF
             && modifiers.HasFlag(ModifierKeys.Control))
 #endif
