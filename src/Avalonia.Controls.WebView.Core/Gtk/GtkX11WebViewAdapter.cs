@@ -64,7 +64,7 @@ internal class GtkX11WebViewAdapter(GtkWebViewEnvironmentRequestedEventArgs envi
         }
     }
 
-    [DynamicDependency(DynamicallyAccessedMemberTypes.NonPublicFields, "X11NativeControlHost+DumbWindow", "Avalonia.X11")]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.NonPublicFields, "Avalonia.X11.X11NativeControlHost+DumbWindow", "Avalonia.X11")]
     private static IntPtr GetDisplay(IPlatformHandle handle) => (IntPtr)handle.GetType()
         .GetField("_display", BindingFlags.Instance | BindingFlags.NonPublic)?
         .GetValue(handle)!;
