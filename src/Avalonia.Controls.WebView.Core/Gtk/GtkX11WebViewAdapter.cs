@@ -12,6 +12,8 @@ namespace Avalonia.Controls.Gtk;
 internal class GtkX11WebViewAdapter(GtkWebViewEnvironmentRequestedEventArgs environmentArgs, IPlatformHandle parent)
     : GtkWebViewAdapter(environmentArgs), IPlatformHandle
 {
+    private static readonly IntPtr s_display = XOpenDisplay(IntPtr.Zero);
+
     private IntPtr _x11Window;
     private IntPtr _windowHandle;
 
@@ -33,14 +35,15 @@ internal class GtkX11WebViewAdapter(GtkWebViewEnvironmentRequestedEventArgs envi
         if (parent.HandleDescriptor != "XID")
             throw new InvalidOperationException("Parent is not supported");
 
-        var display = GetDisplay(parent);
+        if (s_display == IntPtr.Zero)
+            throw new Exception("XOpenDisplay failed");
 
-        XReparentWindow(display, _x11Window, parent.Handle, 0, 0);
-        _ = XFlush(display);
-        XSync(display, false);
+        XReparentWindow(s_display, _x11Window, parent.Handle, 0, 0);
+        _ = XFlush(s_display);
+        XSync(s_display, false);
 
-        _ = XMapWindow(display, _x11Window);
-        _ = XRaiseWindow(display, parent.Handle);
+        _ = XMapWindow(s_display, _x11Window);
+        _ = XRaiseWindow(s_display, parent.Handle);
 
         RunOnGlibThreadAsync(() => gtk_widget_show_all(_windowHandle));
         base.OnInitialized();
@@ -63,11 +66,6 @@ internal class GtkX11WebViewAdapter(GtkWebViewEnvironmentRequestedEventArgs envi
             base.DefaultBackground = value;
         }
     }
-
-    [DynamicDependency(DynamicallyAccessedMemberTypes.NonPublicFields, "Avalonia.X11.X11NativeControlHost+DumbWindow", "Avalonia.X11")]
-    private static IntPtr GetDisplay(IPlatformHandle handle) => (IntPtr)handle.GetType()
-        .GetField("_display", BindingFlags.Instance | BindingFlags.NonPublic)?
-        .GetValue(handle)!;
 
     IntPtr IPlatformHandle.Handle => _x11Window;
     string IPlatformHandle.HandleDescriptor => "XID";

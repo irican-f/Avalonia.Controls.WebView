@@ -7,6 +7,9 @@ public static partial class X11Interop
 {
     private const string libX11 = "libX11.so.6";
 
+    [DllImport(libX11)]
+    public static extern IntPtr XOpenDisplay(IntPtr display);
+
 #if NET7_0_OR_GREATER
     [LibraryImport(libX11)]
     public static partial int XMapWindow(IntPtr display, IntPtr window);
