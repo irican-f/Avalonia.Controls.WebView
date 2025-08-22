@@ -110,6 +110,9 @@
             "Quiet",
             "Verbose"
           ]
+        },
+        "VersionOverride": {
+          "type": "string"
         }
       }
     }

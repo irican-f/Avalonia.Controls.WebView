@@ -1,4 +1,4 @@
-﻿<Project Sdk="Xpf.Sdk/1.6.0-cibuild002173">
+﻿<Project Sdk="Xpf.Sdk/1.6.0-cibuild002196">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -10,6 +10,7 @@
     <DefineConstants>$(DefineConstants);WPF</DefineConstants>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AvaloniaXpfLicenseKey>$(XpfLicenseKey)</AvaloniaXpfLicenseKey>
+    <DisableAutomaticXpfInit>true</DisableAutomaticXpfInit>
   </PropertyGroup>
 
   <ItemGroup>
