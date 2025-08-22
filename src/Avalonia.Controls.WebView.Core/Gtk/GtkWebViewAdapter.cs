@@ -29,7 +29,7 @@ internal abstract class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebVie
         new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, int, IntPtr, int>)&DecidePolicy);
 
     private static readonly unsafe IntPtr s_loadChangedCallback =
-        new((delegate* unmanaged[Cdecl]<IntPtr, WebKitLoadEvent, IntPtr, void>)&LoadChanged);
+        new((delegate* unmanaged[Cdecl]<IntPtr, int, IntPtr, void>)&LoadChanged);
 
     private static readonly unsafe IntPtr s_scriptCallback =
         new((delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, void>)&InvokeScriptCallback);
