@@ -56,9 +56,14 @@ internal static class AvaloniaGtk
             // Default
             return IntPtr.Zero;
         });
+
+        HasSoup3 = NativeLibrary.TryLoad("libsoup-3.0.so.0", out _) ||
+                   NativeLibrary.TryLoad("libsoup-3.0.so", out _);
 #endif
     }
 
+    public static bool HasSoup3 { get; }
+    
     public static bool CheckAccess() => GtkInterop.g_main_context_default() is var context && context != IntPtr.Zero &&
                                         GtkInterop.g_main_context_is_owner(context);
     
@@ -199,6 +204,7 @@ internal static class AvaloniaGtk
         var target = (Action) gcHandle.Target!;
         gcHandle.Free();
         target();
+        return GtkInterop.False;
     }
 
     private static class CachedDelegate<T>

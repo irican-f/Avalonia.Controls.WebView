@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls.Utils;
+using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Platform;
 using static Avalonia.Controls.Gtk.GtkInterop;
@@ -461,10 +462,22 @@ internal abstract class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebVie
             return;
         }
 
-        var headers = webkit_uri_request_get_http_headers(request);
-        var headersWrapper = new NativeHeadersCollection(headers != IntPtr.Zero ?
-            new SoupHttpHeaders(headers, false) : // seems like we can't mutate headers in this callback
-            new DictionaryNativeHttpRequestHeaders(new Dictionary<string, string>()));
+        INativeHttpRequestHeaders headersImpl;
+        if (HasSoup3)
+        {
+            var headers = webkit_uri_request_get_http_headers(request);
+            headersImpl = headers != IntPtr.Zero ?
+                new Soup3HttpHeaders(headers, false) : // seems like we can't mutate headers in this callback
+                new DictionaryNativeHttpRequestHeaders(new Dictionary<string, string>());
+        }
+        else
+        {
+            Logger.TryGet(LogEventLevel.Verbose, "WebView")?.Log(null,
+                "LibSoup3.0 is not available, header information won't be read");
+            headersImpl = new DictionaryNativeHttpRequestHeaders(new Dictionary<string, string>());
+        }
+
+        var headersWrapper = new NativeHeadersCollection(headersImpl);
         var args = new WebResourceRequestedEventArgs
         {
             Request = new WebViewWebResourceRequest
