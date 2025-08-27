@@ -160,12 +160,37 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
 
     public void Navigate(Uri url)
     {
-        WebView.LoadUrl(url.ToString());
+        NavigateCore(url, null);
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string htmlText)
     {
-        WebView.LoadDataWithBaseURL("http://localhost", text, "text/html", "UTF-8", null);
+        NavigateCore(new Uri("http://localhost"), htmlText);
+    }
+
+    private void NavigateCore(Uri url, string? htmlText)
+    {
+        // WebViewClient.ShouldOverrideUrlLoading is never called for initial navigation.
+        // Instead, do that manually.
+        WebViewDispatcher.InvokeAsync(() =>
+        {
+            if (NavigationStarted is { } navigationStarted)
+            {
+                var args = new WebViewNavigationStartingEventArgs { Request = url };
+                navigationStarted.Invoke(this, args);
+                if (args.Cancel)
+                    return;
+            }
+
+            if (htmlText is not null)
+            {
+                WebView.LoadDataWithBaseURL(url.ToString(), htmlText, "text/html", "UTF-8", null);
+            }
+            else
+            {
+                WebView.LoadUrl(url.ToString());
+            }
+        });
     }
 
     public bool Refresh()
@@ -280,6 +305,28 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
             }
         }
 
+        public override WebResourceResponse? ShouldInterceptRequest(WebView? view, IWebResourceRequest? request)
+        {
+            if (adapter.WebResourceRequested is { } webResourceRequested)
+            {
+                var webResourceArgs = new WebResourceRequestedEventArgs
+                {
+                    Request = new WebViewWebResourceRequest
+                    {
+                        Method = request is null ? HttpMethod.Get : new HttpMethod(request.Method!),
+                        Uri = new Uri(request!.Url!.ToString()!),
+                        Headers = new NativeHeadersCollection(new DictionaryNativeHttpRequestHeaders(
+                            request?.RequestHeaders?.AsReadOnly() ?? new ReadOnlyDictionary<string, string>(
+                                new Dictionary<string, string>()))),
+                    }
+                };
+
+                webResourceRequested.Invoke(this, webResourceArgs);
+            }
+
+            return base.ShouldInterceptRequest(view, request);
+        }
+
 #pragma warning disable CS0672 // Member overrides obsolete member
         public override bool ShouldOverrideUrlLoading(WebView? view, string? url)
 #pragma warning restore CS0672 // Member overrides obsolete member
@@ -322,23 +369,6 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
             if (WebViewHelper.IsAnchorNavigation(_lastNavigationUrl, url))
             {
                 return false;
-            }
-
-            if (adapter.WebResourceRequested is { } webResourceRequested)
-            {
-                var webResourceArgs = new WebResourceRequestedEventArgs
-                {
-                    Request = new WebViewWebResourceRequest
-                    {
-                        Method = request is null ? HttpMethod.Get : new HttpMethod(request.Method!),
-                        Uri = url,
-                        Headers = new NativeHeadersCollection(new DictionaryNativeHttpRequestHeaders(
-                            request?.RequestHeaders?.AsReadOnly() ?? new ReadOnlyDictionary<string, string>(
-                                new Dictionary<string, string>()))),
-                    }
-                };
-
-                webResourceRequested.Invoke(this, webResourceArgs);
             }
 
             if (request?.IsForMainFrame == false)
