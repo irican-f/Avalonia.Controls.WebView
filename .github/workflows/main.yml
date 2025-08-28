@@ -11,7 +11,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:
+          # https://github.com/actions/checkout/issues/116#issuecomment-644419389
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+          submodules: 'recursive'
     - uses: actions/setup-dotnet@v4
       with:
           dotnet-version: '9.0.x'

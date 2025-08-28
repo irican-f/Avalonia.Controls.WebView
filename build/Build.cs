@@ -1,21 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using MicroCom.CodeGenerator;
-using NuGet.Configuration;
-using NuGet.Versioning;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.PowerShell;
 using NukeExtensions;
-using Semver;
 using Serilog;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
