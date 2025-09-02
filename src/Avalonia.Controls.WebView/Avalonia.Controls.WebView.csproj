@@ -4,6 +4,7 @@
       netstandard2.0;
       net8.0;net8.0-android
     </TargetFrameworks>
+    <Description>Avalonia WebView component enables embedding web content in Avalonia applications for use cases like documentation, dashboards, and interactive content.</Description>
     <DefineConstants>$(DefineConstants);AVALONIA</DefineConstants>
     <RootNamespace>Avalonia.Controls</RootNamespace>
     <CopyLocalLockFileAssemblies Condition="'$(ILMergeBuild)' == 'true'">true</CopyLocalLockFileAssemblies>
@@ -24,3 +25,4 @@
   <Import Project="$(RepositoryTargetsRoot)/PackEnable.targets" />
   <Import Project="$(RepositoryTargetsRoot)/SignEnable.targets" />
 </Project>
+
