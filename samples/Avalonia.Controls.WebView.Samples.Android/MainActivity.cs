@@ -15,7 +15,6 @@ namespace Avalonia.Controls.WebView.Samples.Android;
     Icon = "@drawable/icon",
     LaunchMode = LaunchMode.SingleTask,
     MainLauncher = true,
-    LaunchMode = LaunchMode.SingleTask,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 
 public class MainActivity : AvaloniaMainActivity<App>
