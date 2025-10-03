@@ -11,12 +11,13 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <DisableAutomaticXpfInit>true</DisableAutomaticXpfInit>
     <AvaloniaXpfLicenseKey>$(XpfLicenseKey)</AvaloniaXpfLicenseKey>
+    <NoWarn>$(NoWarn);IL2067;IL2075</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Xpf.Controls.WebView" Version="9999.0.0-localbuild" />
-<!--    <ProjectReference Include="..\..\src\Avalonia.Xpf.Controls.WebView\Avalonia.Xpf.Controls.WebView.csproj" />-->
-<!--    <ProjectReference Include="..\..\src\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" />-->
+<!--    <PackageReference Include="Avalonia.Xpf.Controls.WebView" Version="9999.0.0-localbuild" />-->
+    <ProjectReference Include="..\..\src\Avalonia.Xpf.Controls.WebView\Avalonia.Xpf.Controls.WebView.csproj" />
+    <ProjectReference Include="..\..\src\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" />
     <PackageReference Include="Avalonia.Diagnostics" Version="$(XpfAvaloniaVersion)"/>
   </ItemGroup>
 
