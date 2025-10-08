@@ -1,3 +1,7 @@
+# 11.3.11
+
+- Adds `NativeWebView.ShowPrintUI` and `NativeWebView.PrintToPdfStreamAsync` methods for printing web content, supported on Windows, macOS and Linux GTK (with NativeWebDialog)
+
 # 11.3.10
 
 - Fixes Android WebAuthenticationBroker not working with major OAuth providers
