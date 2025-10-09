@@ -24,8 +24,6 @@ jobs:
       run: dotnet workload install android
 
     - name: CreateNugetPackages
-      env:
-        BABEL_LICENSE: ${{ secrets.BABEL_LICENSE_SECRET }}
       run: dotnet run --project ${{github.workspace}}/build/_build.csproj -- --target CreateNugetPackages --configuration Release --output ${{github.workspace}}/artifacts/packages/
 
     - name: Upload Avalonia nupkg artifact
@@ -57,7 +55,8 @@ jobs:
             path: ./nupkgs
 
       - name: Publish Nightly release
-        run: dotnet nuget push ./nupkgs/**/*.nupkg  --api-key ${{secrets.INTERNAL_FEED_API_KEY}} --source ${{ vars.INTERNAL_FEED_UPLOAD_URL }}
+        # TODO: replace with new feed when available
+        run: dotnet nuget push ./nupkgs/**/*.nupkg --api-key ${{secrets.INTERNAL_FEED_API_KEY}} --source ${{ vars.INTERNAL_FEED_UPLOAD_URL }}
 
       - name: Clean packages
         if: always()
@@ -93,7 +92,7 @@ jobs:
         path: ./nupkgs
 
     - name: Publish release
-      run: dotnet nuget push ./nupkgs/**/*.nupkg --api-key ${{secrets.PROPACK_FEED_API_KEY}} --source ${{ vars.PROPACK_FEED_UPLOAD_URL }}
+      run: dotnet nuget push ./nupkgs/**/*.nupkg --api-key ${{secrets.NUGET_FEED_API_KEY}} --source https://api.nuget.org/v3/index.json
 
     - name: Clean packages
       if: always()
