@@ -82,7 +82,8 @@ class Build : NukeBuild
                         Statics.BabelRules,
                         RootDirectory / "build" / "BabelWebView.rules"
                     ],
-                    inlineExpansion: true);
+                    // MONO trimmer doesn't support shared lambdas that are associated with inlined method calls.
+                    inlineExpansion: false);
             }
         });
 

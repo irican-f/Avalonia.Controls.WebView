@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Avalonia.Logging;
 
@@ -141,8 +142,11 @@ internal static class AvaloniaGtk
     
     public static Task<T> RunTask<T>(Func<T> callback)
     {
-        if (s_startGtk is { } startGtk)
-            return PrivateApi(startGtk(), callback);
+        if (!OperatingSystemEx.IsLinux())
+            throw new PlatformNotSupportedException("GTK is only supported on Linux");
+
+        if (CachedDelegate.IsAvailable)
+            return PrivateApi(CachedDelegate.StartGtk(), callback);
         else
             return PublicApi(callback);
 
@@ -188,15 +192,6 @@ internal static class AvaloniaGtk
     }
     
     
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods,
-        "Avalonia.X11.NativeDialogs.Gtk", "Avalonia.X11")]
-    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Should be fine for generic ref types")]
-    private static readonly Func<Task<bool>>? s_startGtk = Type
-        .GetType("Avalonia.X11.NativeDialogs.Gtk, Avalonia.X11")?
-        .GetMethod("StartGtk", BindingFlags.Public | BindingFlags.Static) is not { } method ?
-        null :
-        (Func<Task<bool>>?)Delegate.CreateDelegate(typeof(Func<Task<bool>>), method);
-
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int SourceOnceFunc(IntPtr userData)
     {
@@ -207,6 +202,29 @@ internal static class AvaloniaGtk
         return GtkInterop.False;
     }
 
+    [SupportedOSPlatform("linux")]
+    private static class CachedDelegate
+    {
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Should be fine for generic ref types")]
+        private static readonly Func<Task<bool>>? s_startGtk = Type
+            .GetType("Avalonia.X11.NativeDialogs.Gtk, Avalonia.X11")?
+            .GetMethod("StartGtk", BindingFlags.Public | BindingFlags.Static) is not { } method ?
+            null :
+            (Func<Task<bool>>?)Delegate.CreateDelegate(typeof(Func<Task<bool>>), method);
+
+        public static bool IsAvailable => s_startGtk is not null;
+
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods,
+            "Avalonia.X11.NativeDialogs.Gtk", "Avalonia.X11")]
+        public static Task<bool> StartGtk()
+        {
+            if (s_startGtk is null)
+                throw new InvalidOperationException("Avalonia.X11 is not referenced");
+            return s_startGtk();
+        }
+    }
+
+    [SupportedOSPlatform("linux")]
     private static class CachedDelegate<T>
     {
         // https://github.com/AvaloniaUI/Avalonia/blob/11.1.0/src/Avalonia.X11/Interop/GtkInteropHelper.cs#L9
