@@ -11,6 +11,14 @@ internal class NSHTTPCookie : NSObject
     private static readonly IntPtr s_cookieWithProperties = Libobjc.sel_getUid("cookieWithProperties:");
     private static readonly IntPtr s_properties = Libobjc.sel_getUid("properties");
 
+    private static readonly NSString s_valueKey = NSString.Create("Value");
+    private static readonly NSString s_domainKey = NSString.Create("Domain");
+    private static readonly NSString s_nameKey = NSString.Create("Name");
+    private static readonly NSString s_pathKey = NSString.Create("Path");
+    private static readonly NSString s_secureKey = NSString.Create("Secure");
+    private static readonly NSString s_httpOnlyKey = NSString.Create("HttpOnly");
+    private static readonly NSString s_expiresKey = NSString.Create("Expires");
+
     public NSHTTPCookie(IntPtr handle, bool owns) : base(handle, owns)
     {
     }
@@ -34,16 +42,16 @@ internal class NSHTTPCookie : NSObject
                 "To successfully create a cookie, you must provide values for (at least) the Cookie.Name and Cookie.Value keys, and Cookie.Domain key.");
         }
 
-        Add(NSString.Create("Value"), NSString.Create(cookie.Value));
-        Add(NSString.Create("Domain"), NSString.Create(cookie.Domain));
-        Add(NSString.Create("Name"), NSString.Create(cookie.Name));
-        Add(NSString.Create("Path"), NSString.Create(string.IsNullOrEmpty(cookie.Path) ? "/" : cookie.Path));
+        Add(s_valueKey, NSString.Create(cookie.Value));
+        Add(s_domainKey, NSString.Create(cookie.Domain));
+        Add(s_nameKey, NSString.Create(cookie.Name));
+        Add(s_pathKey, NSString.Create(string.IsNullOrEmpty(cookie.Path) ? "/" : cookie.Path));
         if (cookie.Secure)
-            Add(NSString.Create("Secure"), NSString.Create("TRUE"));
+            Add(s_secureKey, NSString.Create("TRUE"));
         if (cookie.HttpOnly)
-            Add(NSString.Create("HttpOnly"), NSString.Create("TRUE"));
+            Add(s_httpOnlyKey, NSString.Create("TRUE"));
         if (cookie.Expires != DateTime.MinValue)
-            Add(NSString.Create("Expires"), NSDate.FromDateTimeOffset(cookie.Expires));
+            Add(s_expiresKey, NSDate.FromDateTimeOffset(cookie.Expires));
 
         try
         {
@@ -56,11 +64,6 @@ internal class NSHTTPCookie : NSObject
         }
         finally
         {
-            foreach (var name in names)
-            {
-                name.Dispose();
-            }
-
             foreach (var value in values)
             {
                 value.Dispose();

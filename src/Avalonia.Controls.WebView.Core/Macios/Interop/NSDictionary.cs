@@ -43,7 +43,9 @@ internal class NSDictionary : NSObject
             keyPtrs[i] = keys[i].Handle;
         }
 
-        var handle = Libobjc.intptr_objc_msgSend(s_class, s_dictionaryWithObjects, new IntPtr(objPtrs), new IntPtr(keyPtrs), (int)count);
+        // Pass count as UIntPtr, it is expected as NSUInteger:
+        // When building 32-bit applications, NSUInteger is a 32-bit unsigned integer. A 64-bit application treats NSUInteger as a 64-bit unsigned integer
+        var handle = Libobjc.intptr_objc_msgSend(s_class, s_dictionaryWithObjects, new IntPtr(objPtrs), new IntPtr(keyPtrs), new UIntPtr(count));
         return new NSDictionary(handle, true);
     }
 
