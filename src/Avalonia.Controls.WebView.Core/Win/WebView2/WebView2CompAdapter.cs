@@ -19,7 +19,11 @@ using Microsoft.Win32.SafeHandles;
 namespace Avalonia.Controls.Win.WebView2;
 
 // With compositor backend, we create a dedicated Compositor instance on the UI thread,
-// And attach WebView2 to that compositor's tree.
+// and attach WebView2 to that compositor's tree.
+// Each new frame, we request a commit async on the compositor, and when it's done,
+// we use UNDOCUMENTED API - CompositionCapture - to render the WebView2 content into a writeable bitmap.
+// TODO: we can use D3D interop to avoid CPU copies here.
+// TODO: for some reason when WebView is recreated, dispatcher queue (?) gets stuck with no resizing, but rendering continues.
 [SupportedOSPlatform("windows10.0.17763.0")]
 internal partial class WebView2CompAdapter
     // ICoreWebView2Controller can be queried from ICoreWebView2CompositionController. 
@@ -43,6 +47,7 @@ internal partial class WebView2CompAdapter
 
     public WebView2CompAdapter(
         IContainerVisual visual, ICompositor compositor, ICoreWebView2CompositionController controller)
+        // ReSharper disable once SuspiciousTypeConversion.Global
         : base((ICoreWebView2Controller)controller)
     {
         _controller = controller;
@@ -53,6 +58,7 @@ internal partial class WebView2CompAdapter
             Handle = (IntPtr)ComInterfaceMarshaller<IContainerVisual>.ConvertToUnmanaged(visual);
         }
 
+        // ReSharper disable once SuspiciousTypeConversion.Global
         _commitAsyncLoopHandler = new CommitAsyncLoopHandler(this, (ICompositor5)compositor);
     }
 
