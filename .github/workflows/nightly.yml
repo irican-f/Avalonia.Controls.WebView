@@ -11,6 +11,7 @@ jobs:
   nightly:
     uses: AvaloniaUI/build-common/.github/workflows/library-cicd.yml@main
     with:
+      install_workloads: "android"
       artifact_glob: Avalonia.Controls.WebView.*.nupkg
       nuget_feed: ${{ vars.NIGHTLY_FEED_UPLOAD_URL }}
     secrets:
