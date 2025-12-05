@@ -23,7 +23,7 @@ jobs:
       artifact_name: avalonia
       artifact_glob: Avalonia.Controls.WebView.*.nupkg
     secrets:
-      SUBMODULE_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
+      checkout_token: ${{ secrets.SUBMODULE_TOKEN }}
 
   build_xpf:
     uses: AvaloniaUI/build-common/.github/workflows/build-library.yml@main
