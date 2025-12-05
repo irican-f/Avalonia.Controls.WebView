@@ -29,7 +29,7 @@ jobs:
       validate_release_branch: true
       nuget_feed: ${{vars.INTERNAL_FEED_UPLOAD_URL}}
       create_github_release: ${{inputs.create_release}}
-      release_changelog_file: ${{github.workspace}}/src/Avalonia.Controls.WebView/CHANGELOG.md
+      release_changelog_file: src/Avalonia.Controls.WebView/CHANGELOG.md
     secrets:
       checkout_token: ${{secrets.SUBMODULE_TOKEN}}
       nuget_api_key: ${{secrets.INTERNAL_FEED_API_KEY}}
