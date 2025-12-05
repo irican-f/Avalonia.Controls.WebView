@@ -31,7 +31,7 @@ jobs:
       artifact_name: xpf
       artifact_glob: Avalonia.Xpf.Controls.WebView.*.nupkg
     secrets:
-      SUBMODULE_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
+      checkout_token: ${{ secrets.SUBMODULE_TOKEN }}
 
   publish-nightly-release:
     runs-on: ubuntu-latest
