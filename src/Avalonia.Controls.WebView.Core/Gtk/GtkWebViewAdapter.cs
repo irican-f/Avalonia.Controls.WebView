@@ -593,13 +593,8 @@ internal abstract class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebVie
 
     IntPtr IGtkWebViewPlatformHandle.WebKitWebView => WebViewHandle;
     
-    internal static DetailedWebViewAdapterInfo GetWebKitGtkInfo()
+    internal static DetailedWebViewAdapterInfo GetWebKitGtkInfo(WebViewEmbeddingScenario scenarios = WebViewEmbeddingScenario.NativeDialog)
     {
-        const WebViewEmbeddingScenario scenarios =
-            //WebViewEmbeddingScenario.NativeControlHost |
-            //WebViewEmbeddingScenario.OffscreenRenderer |
-            WebViewEmbeddingScenario.NativeDialog;
-
         if (!OperatingSystemEx.IsLinux())
         {
             return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.WebKitGtk);

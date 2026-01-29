@@ -1,4 +1,4 @@
-﻿namespace Avalonia.Controls.Win.WebView1.Interop;
+﻿namespace Avalonia.Controls.Win.Interop;
 
 internal enum AsyncStatus
 {

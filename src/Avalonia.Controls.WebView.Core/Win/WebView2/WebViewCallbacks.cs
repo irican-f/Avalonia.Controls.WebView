@@ -14,7 +14,7 @@ namespace Avalonia.Controls.Win.WebView2;
 internal partial class WebViewCallbacks(WeakReference<WebView2BaseAdapter> weakAdapter) : ICoreWebView2NavigationStartingEventHandler,
     ICoreWebView2NavigationCompletedEventHandler, ICoreWebView2WebMessageReceivedEventHandler,
     ICoreWebView2NewWindowRequestedEventHandler, ICoreWebView2WebResourceRequestedEventHandler,
-    ICoreWebView2MoveFocusRequestedEventHandler, ICoreWebView2FocusChangedEventHandler
+    ICoreWebView2MoveFocusRequestedEventHandler, ICoreWebView2FocusChangedEventHandler, ICoreWebView2CursorChangedEventHandler
 {
     public void Invoke(ICoreWebView2 sender, ICoreWebView2NavigationStartingEventArgs e)
     {
@@ -110,6 +110,17 @@ internal partial class WebViewCallbacks(WeakReference<WebView2BaseAdapter> weakA
     {
         if (weakAdapter.TryGetTarget(out var adapter)
             && adapter.GetGotFocus() is { } handler)
+        {
+            handler.Invoke(adapter, EventArgs.Empty);
+        }
+    }
+
+    [SupportedOSPlatform("windows10.0.17763.0")]
+    void ICoreWebView2CursorChangedEventHandler.Invoke(ICoreWebView2CompositionController sender, IntPtr args)
+    {
+        if (weakAdapter.TryGetTarget(out var adapter)
+            && adapter is WebView2CompAdapter compAdapter
+            && compAdapter.GetCursorChanged() is { } handler)
         {
             handler.Invoke(adapter, EventArgs.Empty);
         }

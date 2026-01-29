@@ -246,10 +246,8 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
         ReleaseUnmanagedResources();
     }
 
-    internal static DetailedWebViewAdapterInfo GetWebView1Info()
+    internal static DetailedWebViewAdapterInfo GetWebView1Info(WebViewEmbeddingScenario scenarios = WebViewEmbeddingScenario.NativeControlHost)
     {
-        const WebViewEmbeddingScenario scenarios = WebViewEmbeddingScenario.NativeControlHost;
-
         if (!OperatingSystemEx.IsWindows())
         {
             return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.WebView1);

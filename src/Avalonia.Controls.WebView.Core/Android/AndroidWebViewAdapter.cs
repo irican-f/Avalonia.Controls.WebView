@@ -267,16 +267,13 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
         return Task.FromResult<IReadOnlyList<Cookie>>(cookies);
     }
 
-    internal static DetailedWebViewAdapterInfo GetAndroidWebViewInfo()
+    internal static DetailedWebViewAdapterInfo GetAndroidWebViewInfo(WebViewEmbeddingScenario scenarios =
+        WebViewEmbeddingScenario.NativeControlHost | WebViewEmbeddingScenario.NativeDialog)
     {
         if (!OperatingSystem.IsAndroid())
         {
             return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.AndroidWebView);
         }
-
-        const WebViewEmbeddingScenario scenarios =
-            WebViewEmbeddingScenario.NativeControlHost |
-            WebViewEmbeddingScenario.NativeDialog;
 
         WebViewEngine engine;
         string? version;

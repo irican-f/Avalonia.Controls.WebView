@@ -39,7 +39,7 @@ internal abstract unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
 
     public event Action? DrawRequested;
     
-    public Task UpdateWriteableBitmap(FrameChainBase<WriteableBitmap, PixelSize>.IProducer producer)
+    public Task UpdateWriteableBitmap(PixelSize _, FrameChainBase<WriteableBitmap, PixelSize>.IProducer producer)
     {
         if (_windowHandle == IntPtr.Zero)
         {
@@ -157,7 +157,7 @@ internal abstract unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
         });
     }
 
-    public bool PointerInput(PointerPoint point, KeyModifiers modifiers)
+    public bool PointerInput(PointerPoint point, int _, double dpi, KeyModifiers modifiers)
     {
         var (eventType, button) = point.Properties.PointerUpdateKind switch
         {
@@ -192,16 +192,16 @@ internal abstract unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
             if (eventType == GdkEventType.GDK_MOTION_NOTIFY)
             {
                 ev->motion.time = 0;
-                ev->motion.x = point.Position.X;
-                ev->motion.y = point.Position.Y;
+                ev->motion.x = point.Position.X * dpi;
+                ev->motion.y = point.Position.Y * dpi;
                 ev->motion.state = ToGtk(modifiers, point.Properties);
                 ev->motion.device = gdevice;
             }
             else
             {
                 ev->button.time = 0;
-                ev->button.x = point.Position.X;
-                ev->button.y = point.Position.Y;
+                ev->button.x = point.Position.X * dpi;
+                ev->button.y = point.Position.Y * dpi;
                 ev->button.button = button;
                 ev->button.state = ToGtk(modifiers, point.Properties);
                 ev->button.device = gdevice;
@@ -211,7 +211,21 @@ internal abstract unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
         });
     }
 
-    public bool PointerWheelInput(Vector delta, PointerPoint point, KeyModifiers modifiers)
+    public bool PointerLeaveInput(PointerPoint point, double dpi, KeyModifiers modifiers)
+    {
+        return RunOnGlibThread(() =>
+        {
+            using var state = new EventSendState(GdkEventType.GDK_LEAVE_NOTIFY, WebViewHandle);
+            var ev = state.Event;
+            ev->crossing.x = point.Position.X * dpi;
+            ev->crossing.y = point.Position.Y * dpi;
+            ev->crossing.time = 0;
+
+            return state.Send();
+        });
+    }
+
+    public bool PointerWheelInput(Vector delta, PointerPoint point, double dpi, KeyModifiers modifiers)
     {
         return RunOnGlibThread(() =>
         {
@@ -219,8 +233,8 @@ internal abstract unsafe class GtkOffscreenWebViewAdapter : GtkWebViewAdapter,
             var seat = gdk_display_get_default_seat(gdisplay);
             var gdevice = gdk_seat_get_pointer(seat);
 
-            var x = point.Position.X;
-            var y = point.Position.X;
+            var x = point.Position.X * dpi;
+            var y = point.Position.Y * dpi;
 
             using var state = new EventSendState(GdkEventType.GDK_SCROLL, WebViewHandle);
             var ev = state.Event;

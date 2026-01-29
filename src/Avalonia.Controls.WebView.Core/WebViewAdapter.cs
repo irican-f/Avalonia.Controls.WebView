@@ -81,10 +81,18 @@ internal static class WebViewAdapter
                     && Win.WebView2.CoreWebView2Environment.TryFindWebView2Runtime(args.BrowserExecutableFolder) !=
                     IntPtr.Zero)
                 {
-                    var builder = await Win.WebView2.WebView2HwndAdapter.CreateBuilder(args);
-                    return new NativeHostAdapterFactory(
-                        builder,
-                        Win.WebView2.WebView2BaseAdapter.GetWebView2Info(args.BrowserExecutableFolder));
+                    if (args.ExperimentalOffscreen && OperatingSystemEx.IsWindowsAtLeast(10, 0, 17763))
+                    {
+                        var info = Win.WebView2.WebView2BaseAdapter.GetWebView2Info(args.BrowserExecutableFolder, WebViewEmbeddingScenario.OffscreenRenderer);
+                        var builder = await Win.WebView2.WebView2CompAdapter.CreateBuilder(args);
+                        return new CompositorHostAdapterFactory(builder, info);
+                    }
+                    else
+                    {
+                        var info = Win.WebView2.WebView2BaseAdapter.GetWebView2Info(args.BrowserExecutableFolder);
+                        var builder = await Win.WebView2.WebView2HwndAdapter.CreateBuilder(args);
+                        return new NativeHostAdapterFactory(builder, info);
+                    }
                 }
             }
             {
@@ -109,7 +117,7 @@ internal static class WebViewAdapter
             if (args.ExperimentalOffscreen)
             {
                 var builder = await Gtk.GtkOffscreenAvaloniaWebViewAdapter.CreateBuilder(args);
-                return new CompositorHostAdapterFactory(builder, Gtk.GtkWebViewAdapter.GetWebKitGtkInfo());
+                return new CompositorHostAdapterFactory(builder, Gtk.GtkWebViewAdapter.GetWebKitGtkInfo(WebViewEmbeddingScenario.OffscreenRenderer));
             }
             else
             {

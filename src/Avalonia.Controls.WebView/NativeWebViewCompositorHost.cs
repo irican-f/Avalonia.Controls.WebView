@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Avalonia.Controls.Rendering;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Rendering.Composition;
 
 #if AVALONIA
@@ -17,7 +19,7 @@ internal class NativeWebViewCompositorHost(WebViewAdapter.CompositorHostAdapterF
     //private ReparentingScope? _reparentingScope;
     private bool _firstDraw;
     private CompositionCustomVisual? _customVisual;
-    private readonly BitmapFrameChain _frameChain = new();
+    private readonly BitmapFrameChain _frameChain = new(PixelFormats.Bgra8888);
 
     /// <inheritdoc />
     public event EventHandler<IWebViewAdapter>? AdapterCreated;
@@ -85,6 +87,10 @@ internal class NativeWebViewCompositorHost(WebViewAdapter.CompositorHostAdapterF
         if (adapter is not null)
         {
             adapter.DrawRequested -= OffscreenAdapter_OnDrawRequested;
+            if (adapter is IWebViewAdapterWithExplicitCursor cursorAdapter)
+            {
+                cursorAdapter.CursorChanged -= CursorAdapter_OnCursorChanged;
+            }
             AdapterDestroyed?.Invoke(this, adapter);
             adapter.Dispose();
         }
@@ -102,20 +108,40 @@ internal class NativeWebViewCompositorHost(WebViewAdapter.CompositorHostAdapterF
         _webViewReadyCompletion?.TrySetResult(adapter);
         AdapterCreated?.Invoke(this, adapter);
         adapter.DrawRequested += OffscreenAdapter_OnDrawRequested;
+        
+        if (adapter is IWebViewAdapterWithExplicitCursor cursorAdapter)
+        {
+            Cursor = new Cursor(cursorAdapter.CurrentCursorType);
+            cursorAdapter.CursorChanged += CursorAdapter_OnCursorChanged;
+        }
     }
 
     private async void OffscreenAdapter_OnDrawRequested()
     {
-        var adapter = (IWebViewAdapterWithOffscreenBuffer)TryGetAdapter()!;
+        var adapter = (IWebViewAdapterWithOffscreenBuffer?)TryGetAdapter();
+        if (adapter is null)
+            return;
 
+        var adapterSize = PixelSize.FromSize(Bounds.Size, TopLevel.GetTopLevel(this)!.RenderScaling);
         if (_firstDraw)
         {
             _firstDraw = false;
-            adapter.SizeChanged(PixelSize.FromSize(Bounds.Size, TopLevel.GetTopLevel(this)!.RenderScaling));
+            adapter.SizeChanged(adapterSize);
         }
 
-        await adapter.UpdateWriteableBitmap(_frameChain.Producer);
+        await adapter.UpdateWriteableBitmap(adapterSize, _frameChain.Producer);
         _customVisual?.SendHandlerMessage(VisualHandler.DrawRequested);
+    }
+
+    private void CursorAdapter_OnCursorChanged(object? sender, EventArgs e)
+    {
+        Cursor = new Cursor(((IWebViewAdapterWithExplicitCursor)sender!).CurrentCursorType);
+    }
+
+    public override void Render(DrawingContext context)
+    {
+        context.FillRectangle(Brushes.Transparent, Bounds.WithX(0).WithY(0));
+        base.Render(context);
     }
 
     private class VisualHandler : CompositionCustomVisualHandler
@@ -154,8 +180,7 @@ internal class NativeWebViewCompositorHost(WebViewAdapter.CompositorHostAdapterF
 
         public override void OnRender(ImmediateDrawingContext drawingContext)
         {
-            if (_frameConsumer is not null
-                && _frameConsumer.CurrentFrame is { } frame)
+            if (_frameConsumer?.CurrentFrame is { } frame)
             {
                 drawingContext.DrawBitmap(frame, GetRenderBounds());
             }

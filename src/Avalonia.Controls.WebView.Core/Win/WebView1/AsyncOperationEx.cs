@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Controls.Win.Interop;
 using Avalonia.Controls.Win.WebView1.Interop;
 
 namespace Avalonia.Controls.Win.WebView1;

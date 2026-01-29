@@ -21,6 +21,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
     private EventHandler<WebResourceRequestedEventArgs>? _webResourceRequested;
     private Action? _subscriptions;
 
+    protected bool Disposed { get; private set; } = false;
     public abstract IntPtr Handle { get; }
     public abstract string? HandleDescriptor { get; }
 
@@ -151,25 +152,31 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
 
     public virtual void SizeChanged(PixelSize containerSize)
     {
-        WebViewDispatcher.InvokeAsync(() =>
-        {
-            if (PInvoke.GetWindowRect(new HWND(Handle), out var rect))
-            {
-                if (controller is ICoreWebView2Controller3 controller3)
-                {
-                    controller3.SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE.COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS);
-                }
-
-                controller.SetBounds(new tagRECT
-                {
-                    right = rect.Width,
-                    bottom = rect.Height
-                });
-                controller.NotifyParentWindowPositionChanged();
-            }
-        });
+        WebViewDispatcher.InvokeAsync(() => SizeChangedCore(containerSize));
     }
 
+    protected virtual void SizeChangedCore(PixelSize containerSize)
+    {
+        // If HWND is available, prefer its size.
+        if (HandleDescriptor == "HWND" && PInvoke.GetWindowRect(new HWND(Handle), out var rect))
+        {
+            controller.SetBounds(new tagRECT
+            {
+                right = rect.Width,
+                bottom = rect.Height
+            });
+        }
+        else
+        {
+            controller.SetBounds(new tagRECT
+            {
+                right = containerSize.Width,
+                bottom = containerSize.Height
+            });
+        }
+        controller.NotifyParentWindowPositionChanged();
+    }
+    
     public virtual void SetParent(IPlatformHandle parent)
     {
         if (parent.HandleDescriptor != "HWND")
@@ -243,6 +250,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
         if (controller is ICoreWebView2Controller3 controller3)
         {
             controller3.SetShouldDetectMonitorScaleChanges(0);
+            controller3.SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE.COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS);
         }
 
         var settings = webView.GetSettings();
@@ -265,6 +273,14 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
         }
     }
 
+    protected virtual void RegisterCallbacks(WebViewCallbacks callbacks)
+    {
+    }
+
+    protected virtual void UnregisterCallbacks()
+    {
+    }
+
     private Action AddHandlers(ICoreWebView2 webView)
     {
         var callbacks = new WebViewCallbacks(new WeakReference<WebView2BaseAdapter>(this));
@@ -275,6 +291,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
         webView.add_NewWindowRequested(callbacks, out var token4);
         controller.add_MoveFocusRequested(callbacks, out var token6);
         controller.add_GotFocus(callbacks, out var token7);
+        RegisterCallbacks(callbacks);
 
         return () =>
         {
@@ -285,6 +302,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
             webView.remove_NewWindowRequested(token4);
             controller.remove_MoveFocusRequested(token6);
             controller.remove_MoveFocusRequested(token7);
+            UnregisterCallbacks();
         };
     }
 
@@ -351,6 +369,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
     {
         if (disposing)
         {
+            Disposed = true;
             controller?.Close();
             _subscriptions?.Invoke();
         }
@@ -374,12 +393,10 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
     unsafe IntPtr IWindowsWebView2PlatformHandle.CoreWebView2Controller =>
         new(ComInterfaceMarshaller<ICoreWebView2Controller>.ConvertToUnmanaged(controller));
 
-    internal static DetailedWebViewAdapterInfo GetWebView2Info(string? browserExecutableFolder)
+    internal static DetailedWebViewAdapterInfo GetWebView2Info(
+        string? browserExecutableFolder,
+        WebViewEmbeddingScenario scenarios = WebViewEmbeddingScenario.NativeControlHost)
     {
-        const WebViewEmbeddingScenario scenarios =
-            //WebViewEmbeddingScenario.OffscreenRenderer |
-            WebViewEmbeddingScenario.NativeControlHost;
-
         if (!OperatingSystemEx.IsWindows())
         {
             return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.WebView2);
