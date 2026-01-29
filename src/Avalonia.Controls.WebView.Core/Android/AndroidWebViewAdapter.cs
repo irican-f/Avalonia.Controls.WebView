@@ -267,7 +267,7 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
         return Task.FromResult<IReadOnlyList<Cookie>>(cookies);
     }
 
-    internal static WebViewAdapterInfo GetAndroidWebViewInfo()
+    internal static DetailedWebViewAdapterInfo GetAndroidWebViewInfo()
     {
         if (!OperatingSystem.IsAndroid())
         {
@@ -291,7 +291,7 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
             (engine, version) = (WebViewEngine.Unknown, null);
         }
 
-        return new WebViewAdapterInfo(
+        return new DetailedWebViewAdapterInfo(
             WebViewAdapterType.AndroidWebView,
             engine,
             IsSupported: true,

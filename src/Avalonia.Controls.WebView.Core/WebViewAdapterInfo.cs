@@ -120,14 +120,25 @@ public enum WebViewEngine
 /// <param name="Version">The version of the adapter runtime, if available.</param>
 /// <param name="UnavailableReason">The reason the adapter is unavailable, if applicable.</param>
 /// <param name="SupportedScenarios">The embedding scenarios supported by this adapter.</param>
+public record DetailedWebViewAdapterInfo(
+    WebViewAdapterType Type,
+    WebViewEngine Engine,
+    string? Version,
+    bool IsSupported,
+    bool IsInstalled,
+    string? UnavailableReason,
+    WebViewEmbeddingScenario SupportedScenarios) : WebViewAdapterInfo(Type, Engine, Version);
+
+/// <summary>
+/// Information about a WebView adapter.
+/// </summary>
+/// <param name="Type">The adapter type.</param>
+/// <param name="Engine">The underlying web rendering engine.</param>
+/// <param name="Version">The version of the adapter runtime, if available.</param>
 public record WebViewAdapterInfo(
     WebViewAdapterType Type,
     WebViewEngine Engine,
-    bool IsSupported,
-    bool IsInstalled,
-    string? Version,
-    string? UnavailableReason,
-    WebViewEmbeddingScenario SupportedScenarios)
+    string? Version)
 {
     /// <summary>
     /// Gets detailed availability information for a specific adapter.
@@ -135,7 +146,7 @@ public record WebViewAdapterInfo(
     /// <param name="adapterType">The adapter type to check.</param>
     /// <returns>Detailed information about the adapter's availability.</returns>
 #pragma warning disable CA1416
-    public static WebViewAdapterInfo GetAdapterInfo(WebViewAdapterType adapterType)
+    public static DetailedWebViewAdapterInfo GetAdapterInfo(WebViewAdapterType adapterType)
     {
         return adapterType switch
         {
@@ -157,7 +168,7 @@ public record WebViewAdapterInfo(
     }
 #pragma warning restore CA1416
 
-    internal static WebViewAdapterInfo PlatformNotSupported(WebViewAdapterType? type = null) => new(
+    internal static DetailedWebViewAdapterInfo PlatformNotSupported(WebViewAdapterType? type = null) => new(
         type ?? WebViewAdapterType.Unknown,
         WebViewEngine.Unknown,
         IsSupported: false,
@@ -166,7 +177,7 @@ public record WebViewAdapterInfo(
         UnavailableReason: "The adapter is not supported on the current platform.",
         SupportedScenarios: WebViewEmbeddingScenario.None);
 
-    private static WebViewAdapterInfo UnknownAdapter(WebViewAdapterType type) => new(
+    private static DetailedWebViewAdapterInfo UnknownAdapter(WebViewAdapterType type) => new(
         type,
         WebViewEngine.Unknown,
         IsSupported: false,

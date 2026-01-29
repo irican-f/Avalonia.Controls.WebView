@@ -453,7 +453,7 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
     IntPtr IAppleWKWebViewPlatformHandle.WKWebView => Handle;
     IntPtr IAppleWKWebViewPlatformHandle.GetWKWebViewRetained() => _webView.Retain();
 
-    internal static WebViewAdapterInfo GetWkWebViewInfo()
+    internal static DetailedWebViewAdapterInfo GetWkWebViewInfo()
     {
         const WebViewEmbeddingScenario scenarios =
             WebViewEmbeddingScenario.NativeControlHost;
@@ -466,7 +466,7 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
         var isAvailable = OperatingSystemEx.IsMacOSVersionAtLeast(10, 10) ||
                           OperatingSystemEx.IsIOSVersionAtLeast(8, 0);
 
-        return new WebViewAdapterInfo(
+        return new DetailedWebViewAdapterInfo(
             WebViewAdapterType.WkWebView,
             WebViewEngine.WebKit,
             IsSupported: isAvailable,

@@ -310,9 +310,9 @@ internal partial class HeadlessWebViewAdapter : IWebViewAdapterWithOffscreenBuff
         return Task.CompletedTask;
     }
 
-    internal static WebViewAdapterInfo GetHeadlessInfo() 
+    internal static DetailedWebViewAdapterInfo GetHeadlessInfo() 
     {
-        return new WebViewAdapterInfo(
+        return new DetailedWebViewAdapterInfo(
             WebViewAdapterType.Headless,
             WebViewEngine.Unknown,
             IsSupported: true,

@@ -272,6 +272,9 @@ namespace Avalonia.Xpf.Controls
             set => SetValue(BackgroundProperty, value);
         }
 
+        /// <summary>
+        /// Information about the underlying WebView adapter.
+        /// </summary>
         public Core.WebViewAdapterInfo? AdapterInfo
         {
 #if WPF

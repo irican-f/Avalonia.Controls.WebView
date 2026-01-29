@@ -246,7 +246,7 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
         ReleaseUnmanagedResources();
     }
 
-    internal static WebViewAdapterInfo GetWebView1Info()
+    internal static DetailedWebViewAdapterInfo GetWebView1Info()
     {
         const WebViewEmbeddingScenario scenarios = WebViewEmbeddingScenario.NativeControlHost;
 
@@ -260,7 +260,7 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
                                  Environment.OSVersion.Version.Build >= 17763;
         if (!isWindows10OrNewer)
         {
-            return new WebViewAdapterInfo(
+            return new DetailedWebViewAdapterInfo(
                 WebViewAdapterType.WebView1,
                 WebViewEngine.EdgeHtml,
                 IsSupported: false,
@@ -271,7 +271,7 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
         }
 
         // WebView1 is available on Windows 10+ but deprecated
-        return new WebViewAdapterInfo(
+        return new DetailedWebViewAdapterInfo(
             WebViewAdapterType.WebView1,
             WebViewEngine.EdgeHtml,
             IsSupported: true,

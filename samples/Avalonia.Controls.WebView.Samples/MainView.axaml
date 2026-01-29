@@ -8,8 +8,13 @@
              KeyUp="View_OnKeyUp">
     <TabControl x:Name="TabControl">
         <TabItem Header="AvaloniaUI">
-            <Grid x:Name="GridContainer" RowDefinitions="3*, *">
-                <NativeWebView x:Name="WebView"
+            <Grid x:Name="GridContainer" RowDefinitions="Auto, 3*, *">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="{Binding #WebView.AdapterInfo}" />
+                    <TextBlock Text="{Binding #WebView.Source}" />
+                </DockPanel>
+                <NativeWebView Grid.Row="1" x:Name="WebView"
                                Source="https://google.com/"
                                EnvironmentRequested="NativeWebView_OnEnvironmentRequested"
                                NavigationCompleted="NativeWebView_OnNavigationCompleted"
@@ -21,7 +26,7 @@
                                AdapterDestroyed="NativeWebView_OnAdapterDestroyed"
                                KeyDown="InputElement_OnKeyDown"
                                KeyUp="InputElement_OnKeyUp" />
-                <TextBox IsReadOnly="True" Grid.Row="1" x:Name="LogList" />
+                <TextBox IsReadOnly="True" Grid.Row="2" x:Name="LogList" />
             </Grid>
         </TabItem>
         <TabItem Header="Input types">

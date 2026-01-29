@@ -374,7 +374,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
     unsafe IntPtr IWindowsWebView2PlatformHandle.CoreWebView2Controller =>
         new(ComInterfaceMarshaller<ICoreWebView2Controller>.ConvertToUnmanaged(controller));
 
-    internal static WebViewAdapterInfo GetWebView2Info(string? browserExecutableFolder)
+    internal static DetailedWebViewAdapterInfo GetWebView2Info(string? browserExecutableFolder)
     {
         const WebViewEmbeddingScenario scenarios =
             //WebViewEmbeddingScenario.OffscreenRenderer |
@@ -389,7 +389,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
             browserExecutableFolder, out var runtimeHandle, out var version);
         if (runtimeHandle == IntPtr.Zero && error is not null)
         {
-            return new WebViewAdapterInfo(
+            return new DetailedWebViewAdapterInfo(
                 WebViewAdapterType.WebView2,
                 WebViewEngine.Blink,
                 IsSupported: true,
@@ -399,7 +399,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
                 SupportedScenarios: scenarios);
         }
 
-        return new WebViewAdapterInfo(
+        return new DetailedWebViewAdapterInfo(
             WebViewAdapterType.WebView2,
             WebViewEngine.Blink,
             IsSupported: true,

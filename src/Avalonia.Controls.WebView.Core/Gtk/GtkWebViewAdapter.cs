@@ -593,7 +593,7 @@ internal abstract class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebVie
 
     IntPtr IGtkWebViewPlatformHandle.WebKitWebView => WebViewHandle;
     
-    internal static WebViewAdapterInfo GetWebKitGtkInfo()
+    internal static DetailedWebViewAdapterInfo GetWebKitGtkInfo()
     {
         const WebViewEmbeddingScenario scenarios =
             //WebViewEmbeddingScenario.NativeControlHost |
@@ -607,7 +607,7 @@ internal abstract class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebVie
 
         var version = AvaloniaGtk.TryGetVersion();
 
-        return new WebViewAdapterInfo(
+        return new DetailedWebViewAdapterInfo(
             WebViewAdapterType.WebKitGtk,
             WebViewEngine.WebKit,
             IsSupported: true,
