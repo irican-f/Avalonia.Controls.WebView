@@ -86,6 +86,20 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
 
     public bool CanGoForward => _webViewControl?.get_CanGoForward() ?? false;
 
+    public Color DefaultBackground
+    {
+        set
+        {
+            _webViewControl?.put_DefaultBackgroundColor(new winrtColor
+            {
+                A = 255,// value.A, -- doesn't seem to be supported with interop
+                R = value.R,
+                G = value.G,
+                B = value.B,
+            });
+        }
+    }
+
     public Uri Source
     {
         get
@@ -155,20 +169,6 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
     {
         _webViewControl?.Stop();
         return true;
-    }
-
-    public Color DefaultBackground
-    {
-        set
-        {
-            _webViewControl?.put_DefaultBackgroundColor(new winrtColor
-            {
-                A = 255,// value.A, -- doesn't seem to be supported with interop
-                R = value.R,
-                G = value.G,
-                B = value.B,
-            });
-        }
     }
 
     public void SizeChanged(PixelSize containerSize)
@@ -244,5 +244,40 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
     ~WebView1Adapter()
     {
         ReleaseUnmanagedResources();
+    }
+
+    internal static DetailedWebViewAdapterInfo GetWebView1Info()
+    {
+        const WebViewEmbeddingScenario scenarios = WebViewEmbeddingScenario.NativeControlHost;
+
+        if (!OperatingSystemEx.IsWindows())
+        {
+            return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.WebView1);
+        }
+
+        // EdgeHtml is available in any Win10 version, but embeddable WebView1 control requires 10.0.17763+
+        var isWindows10OrNewer = Environment.OSVersion.Version.Major >= 10 &&
+                                 Environment.OSVersion.Version.Build >= 17763;
+        if (!isWindows10OrNewer)
+        {
+            return new DetailedWebViewAdapterInfo(
+                WebViewAdapterType.WebView1,
+                WebViewEngine.EdgeHtml,
+                IsSupported: false,
+                IsInstalled: false,
+                Version: null,
+                UnavailableReason: "WebView1 requires Windows 10 or later.",
+                SupportedScenarios: scenarios);
+        }
+
+        // WebView1 is available on Windows 10+ but deprecated
+        return new DetailedWebViewAdapterInfo(
+            WebViewAdapterType.WebView1,
+            WebViewEngine.EdgeHtml,
+            IsSupported: true,
+            IsInstalled: true,
+            Version: null,
+            UnavailableReason: null,
+            SupportedScenarios: scenarios);
     }
 }

@@ -267,6 +267,40 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
         return Task.FromResult<IReadOnlyList<Cookie>>(cookies);
     }
 
+    internal static DetailedWebViewAdapterInfo GetAndroidWebViewInfo()
+    {
+        if (!OperatingSystem.IsAndroid())
+        {
+            return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.AndroidWebView);
+        }
+
+        const WebViewEmbeddingScenario scenarios =
+            WebViewEmbeddingScenario.NativeControlHost |
+            WebViewEmbeddingScenario.NativeDialog;
+
+        WebViewEngine engine;
+        string? version;
+        try
+        {
+            (engine, version) = OperatingSystem.IsAndroidVersionAtLeast(26) ?
+                (WebViewEngine.Blink, WebView.CurrentWebViewPackage?.VersionName) :
+                (WebViewEngine.Blink, null);
+        }
+        catch
+        {
+            (engine, version) = (WebViewEngine.Unknown, null);
+        }
+
+        return new DetailedWebViewAdapterInfo(
+            WebViewAdapterType.AndroidWebView,
+            engine,
+            IsSupported: true,
+            IsInstalled: true,
+            Version: version,
+            UnavailableReason: null,
+            SupportedScenarios: scenarios);
+    }
+    
     private class JavaScriptInterface(AndroidWebViewAdapter adapter) : Java.Lang.Object
     {
         [Export("postMessage")]
