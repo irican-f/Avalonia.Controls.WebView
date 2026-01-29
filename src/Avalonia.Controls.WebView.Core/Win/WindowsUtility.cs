@@ -31,11 +31,11 @@ internal static class WindowsUtility
             32514 => StandardCursorType.Wait, // OCR_WAIT
             32515 => StandardCursorType.Cross, // OCR_CROSS
             32516 => StandardCursorType.UpArrow, // OCR_UP
-            32642 => StandardCursorType.SizeAll, // OCR_SIZEALL
-            32643 => StandardCursorType.SizeAll, // OCR_SIZENWSE,
-            32644 => StandardCursorType.SizeWestEast, // OCR_SIZENESW
-            32645 => StandardCursorType.SizeNorthSouth, // OCR_SIZEWE
-            32646 => StandardCursorType.SizeAll, // OCR_SIZEWE
+            32642 => StandardCursorType.SizeAll, // OCR_SIZENWSE
+            32643 => StandardCursorType.SizeAll, // OCR_SIZENESW,
+            32644 => StandardCursorType.SizeWestEast, // OCR_SIZEWE
+            32645 => StandardCursorType.SizeNorthSouth, // OCR_SIZENS
+            32646 => StandardCursorType.SizeAll, // OCR_SIZEALL
             32648 => StandardCursorType.No, // OCR_NO
             32649 => StandardCursorType.Hand, // OCR_HAND
             32650 => StandardCursorType.AppStarting, // OCR_APPSTARTING
