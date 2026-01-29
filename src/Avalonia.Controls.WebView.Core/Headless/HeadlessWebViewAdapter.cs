@@ -309,4 +309,16 @@ internal partial class HeadlessWebViewAdapter : IWebViewAdapterWithOffscreenBuff
         }
         return Task.CompletedTask;
     }
+
+    internal static DetailedWebViewAdapterInfo GetHeadlessInfo() 
+    {
+        return new DetailedWebViewAdapterInfo(
+            WebViewAdapterType.Headless,
+            WebViewEngine.Unknown,
+            IsSupported: true,
+            IsInstalled: true,
+            Version: null,
+            UnavailableReason: null,
+            SupportedScenarios: WebViewEmbeddingScenario.OffscreenRenderer);
+    }
 }

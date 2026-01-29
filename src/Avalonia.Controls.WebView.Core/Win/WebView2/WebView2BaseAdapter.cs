@@ -84,8 +84,10 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
             {
                 controller2.SetDefaultBackgroundColor(new COREWEBVIEW2_COLOR
                 {
-                    // WebView2 doesn't support any decimal alpha channel 
-                    A = value.A > 130 ? (byte)255 : (byte)0,
+                    // WebView2 doesn't support any decimal alpha channel
+                    A = Environment.OSVersion.Version <= new Version(6, 1) ?
+                        (byte)255 : // Any A value other than 255 will result in E_INVALIDARG on Windows 7.
+                        (value.A > 130 ? (byte)255 : (byte)0), // WebView2 doesn't support any decimal alpha channel
                     R = value.R,
                     G = value.G,
                     B = value.B,
@@ -390,4 +392,39 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
 
     unsafe IntPtr IWindowsWebView2PlatformHandle.CoreWebView2Controller =>
         new(ComInterfaceMarshaller<ICoreWebView2Controller>.ConvertToUnmanaged(controller));
+
+    internal static DetailedWebViewAdapterInfo GetWebView2Info(string? browserExecutableFolder)
+    {
+        const WebViewEmbeddingScenario scenarios =
+            //WebViewEmbeddingScenario.OffscreenRenderer |
+            WebViewEmbeddingScenario.NativeControlHost;
+
+        if (!OperatingSystemEx.IsWindows())
+        {
+            return WebViewAdapterInfo.PlatformNotSupported(WebViewAdapterType.WebView2);
+        }
+
+        var error = Win.WebView2.CoreWebView2Environment.TryFindWebView2Runtime(
+            browserExecutableFolder, out var runtimeHandle, out var version);
+        if (runtimeHandle == IntPtr.Zero && error is not null)
+        {
+            return new DetailedWebViewAdapterInfo(
+                WebViewAdapterType.WebView2,
+                WebViewEngine.Blink,
+                IsSupported: true,
+                IsInstalled: false,
+                Version: null,
+                UnavailableReason: error,
+                SupportedScenarios: scenarios);
+        }
+
+        return new DetailedWebViewAdapterInfo(
+            WebViewAdapterType.WebView2,
+            WebViewEngine.Blink,
+            IsSupported: true,
+            IsInstalled: true,
+            Version: version,
+            UnavailableReason: null,
+            SupportedScenarios: scenarios);
+    }
 }
