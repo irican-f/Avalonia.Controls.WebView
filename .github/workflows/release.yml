@@ -25,6 +25,7 @@ jobs:
     if: ${{inputs.nuget}}
     uses: AvaloniaUI/build-common/.github/workflows/library-cicd.yml@main
     with:
+      runs-on: windows-latest
       install_workloads: "android ios"
       dotnet_sdk: 10.0.103
       artifact_glob: Avalonia.Controls.WebView.*.nupkg
@@ -40,6 +41,7 @@ jobs:
     if: ${{inputs.xpf}}
     uses: AvaloniaUI/build-common/.github/workflows/library-cicd.yml@main
     with:
+      runs-on: windows-latest        
       install_workloads: "android ios"
       dotnet_sdk: 10.0.103
       artifact_glob: Avalonia.Xpf.Controls.WebView.*.nupkg
