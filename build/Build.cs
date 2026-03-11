@@ -66,10 +66,6 @@ class Build : NukeBuild
                      .Where(p => projectsToObfuscate.Contains(p.NameWithoutExtension)))
             {
                 List<string> dependencies = ["Avalonia.Controls.WebView.Core"];
-                if (project.NameWithoutExtension != "Avalonia.Xpf.Controls.WebView")
-                {
-                    dependencies.Add("AvaloniaUI.Licensing");
-                }
 
                 var tfms = (project.Parent / "bin" / Configuration).GetDirectories();
                 NukeExtensions.Babel.Obfuscate(

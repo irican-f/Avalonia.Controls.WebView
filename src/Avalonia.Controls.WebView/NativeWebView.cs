@@ -23,7 +23,6 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using AvaloniaUI.Licensing;
 using ControlSize = Avalonia.Size;
 #endif
 
@@ -84,13 +83,6 @@ namespace Avalonia.Xpf.Controls
 
         static NativeWebView()
         {
-            // XPF customers don't need a special license to use XPF controls.
-#if !WPF
-            AvaloniaLicenseInformation.LoadAndValidateLibrary(
-                AvaloniaLicenseProduct.WebView.Name!,
-                buildTime: DateTimeOffset.FromUnixTimeSeconds(AvnLicensingConstants.BuildTimeUnixTimestamp));
-#endif
-
 #if WPF
             WpfWebViewDispatcher.Setup();
             FocusableProperty.OverrideMetadata(typeof(NativeWebView), new FrameworkPropertyMetadata(true));
