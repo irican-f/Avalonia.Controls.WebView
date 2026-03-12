@@ -83,6 +83,15 @@ namespace Avalonia.Xpf.Controls
         {
             _webViewReadyCompletion?.TrySetResult(adapter);
             AdapterCreated?.Invoke(this, adapter);
+
+#if AVALONIA
+            // Force-update position once control is initialized.
+            InvalidateMeasure();
+            if (!TryUpdateNativeControlPosition())
+            {
+                _ = Dispatcher.UIThread.InvokeAsync(TryUpdateNativeControlPosition);
+            }
+#endif
         }
 
         /// <inheritdoc />

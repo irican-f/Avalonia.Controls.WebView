@@ -387,9 +387,13 @@ namespace Avalonia.Xpf.Controls
         /// <summary>
         /// If dialog is based on a <see cref="Window"/>, returns its instance to allow full control.
         /// </summary>
+#if ANDROID || BROWSER
+        public Window? TryGetWindow() => null;
+#else
         public Window? TryGetWindow() => GetOrInitialize() is { IsCompleted: true, IsFaulted: false } task ?
             task.Result as WindowNativeWebViewDialog :
             null;
+#endif
 
         internal async Task<bool> Show(IPlatformHandle owner) => (await GetOrInitialize()).Show(owner);
 
@@ -399,6 +403,8 @@ namespace Avalonia.Xpf.Controls
         {
 #if ANDROID
             var dialogImpl = new Android.AndroidNativeWebViewDialog(args => EnvironmentRequested?.Invoke(this, args));
+#elif BROWSER
+            var dialogImpl = new Browser.BrowserWindowNativeWebViewDialog(args => EnvironmentRequested?.Invoke(this, args));
 #else
             Core.INativeWebViewDialog dialogImpl;
             // Special case for GTK, as we want to use GTK window instead of Avalonia window there.

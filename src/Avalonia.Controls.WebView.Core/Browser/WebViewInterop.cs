@@ -54,5 +54,62 @@ internal static partial class WebViewInterop
 
     [JSImport("evalScript", "av-webview")]
     public static partial Task<string?> Eval(JSObject iframe, string script);
+
+    [JSImport("setBackground", "av-webview")]
+    public static partial void SetBackground(JSObject iframe, string color);
+
+    [JSImport("focusIframe", "av-webview")]
+    public static partial void FocusIframe(JSObject iframe);
+
+    [JSImport("blurIframe", "av-webview")]
+    public static partial void BlurIframe(JSObject iframe);
+
+    [JSImport("subscribeFocus", "av-webview")]
+    [return: JSMarshalAs<JSType.Function>]
+    public static partial Action SubscribeFocus(
+        JSObject iframe,
+        [JSMarshalAs<JSType.Function>]
+        Action onFocus,
+        [JSMarshalAs<JSType.Function>]
+        Action onBlur);
+
+    [JSImport("subscribeMessages", "av-webview")]
+    [return: JSMarshalAs<JSType.Function>]
+    public static partial Action SubscribeMessages(
+        JSObject iframe,
+        [JSMarshalAs<JSType.Function<JSType.String>>]
+        Action<string> onMessage);
+
+    [JSImport("injectPostMessageBridge", "av-webview")]
+    public static partial bool InjectPostMessageBridge(JSObject iframe);
+
+    [JSImport("showPrintUI", "av-webview")]
+    public static partial bool ShowPrintUI(JSObject iframe);
+
+    [JSImport("setSandbox", "av-webview")]
+    public static partial void SetSandbox(JSObject iframe, string? value);
+
+    [JSImport("openDialogWindow", "av-webview")]
+    [return: JSMarshalAs<JSType.Array<JSType.Object>>]
+    public static partial JSObject[] OpenDialogWindow(string? title, int width, int height);
+
+    [JSImport("closeDialogWindow", "av-webview")]
+    public static partial void CloseDialogWindow(JSObject popup);
+
+    [JSImport("resizeDialogWindow", "av-webview")]
+    public static partial bool ResizeDialogWindow(JSObject popup, int width, int height);
+
+    [JSImport("moveDialogWindow", "av-webview")]
+    public static partial bool MoveDialogWindow(JSObject popup, int x, int y);
+
+    [JSImport("setDialogTitle", "av-webview")]
+    public static partial void SetDialogTitle(JSObject popup, string? title);
+
+    [JSImport("subscribeDialogClose", "av-webview")]
+    [return: JSMarshalAs<JSType.Function>]
+    public static partial Action SubscribeDialogClose(
+        JSObject popup,
+        [JSMarshalAs<JSType.Function>]
+        Action onClose);
 }
 #endif
