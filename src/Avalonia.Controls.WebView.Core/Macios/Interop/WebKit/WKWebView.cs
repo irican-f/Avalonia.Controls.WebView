@@ -29,6 +29,9 @@ internal class WKWebView : AppleView
     private static readonly IntPtr s_reload = Libobjc.sel_getUid("reload");
     private static readonly IntPtr s_stopLoading = Libobjc.sel_getUid("stopLoading");
 
+    private static readonly IntPtr s_customUserAgent = Libobjc.sel_getUid("customUserAgent");
+    private static readonly IntPtr s_setCustomUserAgent = Libobjc.sel_getUid("setCustomUserAgent:");
+
     private static readonly IntPtr s_evaluateJavaScript = Libobjc.sel_getUid("evaluateJavaScript:completionHandler:");
     private static readonly IntPtr s_callAsyncJavaScript = Libobjc.sel_getUid("callAsyncJavaScript:arguments:inFrame:inContentWorld:completionHandler:");
 
@@ -79,6 +82,16 @@ internal class WKWebView : AppleView
     public IntPtr GoForward() => Libobjc.intptr_objc_msgSend(Handle, s_goForward);
     public IntPtr Reload() => Libobjc.intptr_objc_msgSend(Handle, s_reload);
     public void StopLoading() => Libobjc.void_objc_msgSend(Handle, s_stopLoading);
+
+    public NSString? CustomUserAgent
+    {
+        get
+        {
+            var handle = Libobjc.intptr_objc_msgSend(Handle, s_customUserAgent);
+            return handle != IntPtr.Zero ? NSString.FromHandle(handle) : null;
+        }
+        set => Libobjc.void_objc_msgSend(Handle, s_setCustomUserAgent, value?.Handle ?? IntPtr.Zero);
+    }
 
     public IntPtr LoadRequest(NSURLRequest? request)
     {

@@ -67,6 +67,8 @@ internal class BrowserIFrameAdapter : JSObjectControlHandle, IWebViewAdapter,
         }
     }
 
+    public string? UserAgent { get; set; }
+
     public void SizeChanged(PixelSize containerSize) { }
 
     public void SetParent(IPlatformHandle parent) { }
