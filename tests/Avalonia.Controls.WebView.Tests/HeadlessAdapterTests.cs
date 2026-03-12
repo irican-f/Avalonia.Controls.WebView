@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Headless.XUnit;
 using Avalonia.Platform;
+using Avalonia.VisualTree;
 using Xunit;
 
 namespace Avalonia.Controls.WebView.Tests;
@@ -227,6 +229,57 @@ public class HeadlessAdapterTests : HeadlessTestsBase
         await DoDelay();
 
         Assert.True(navCompleted);
+    }
+
+    [AvaloniaFact]
+    public async Task NativeWebView_Reattach_Does_Not_Create_Duplicate_Host()
+    {
+        var window = new Window();
+        var panel = new StackPanel();
+        window.Content = panel;
+        var webView = new NativeWebView();
+        webView.EnvironmentRequested += (_, _) => { };
+        panel.Children.Add(webView);
+        window.Show();
+
+        await WaitForAdapterCreation(webView);
+        var initialVisualChildren = webView.GetVisualChildren().Count();
+        Assert.Equal(1, initialVisualChildren);
+
+        // Detach and reattach
+        panel.Children.Remove(webView);
+        await DoDelay();
+        panel.Children.Add(webView);
+        await DoDelay();
+
+        // NativeWebView should not add a second control host to the visual tree.
+        Assert.Equal(initialVisualChildren, webView.GetVisualChildren().Count());
+    }
+
+    [AvaloniaFact]
+    public async Task NativeWebView_Multiple_Detach_Reattach_No_Duplicate_Hosts()
+    {
+        var window = new Window();
+        var panel = new StackPanel();
+        window.Content = panel;
+        var webView = new NativeWebView();
+        webView.EnvironmentRequested += (_, _) => { };
+        panel.Children.Add(webView);
+        window.Show();
+
+        await WaitForAdapterCreation(webView);
+        var initialVisualChildren = webView.GetVisualChildren().Count();
+
+        for (int i = 0; i < 5; i++)
+        {
+            panel.Children.Remove(webView);
+            await DoDelay();
+            panel.Children.Add(webView);
+            await DoDelay();
+        }
+
+        // No duplicate children accumulated in the visual tree
+        Assert.Equal(initialVisualChildren, webView.GetVisualChildren().Count());
     }
 
     [AvaloniaFact]

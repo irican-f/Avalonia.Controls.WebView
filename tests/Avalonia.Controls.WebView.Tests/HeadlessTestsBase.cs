@@ -21,8 +21,14 @@ public abstract class HeadlessTestsBase : IDisposable
     protected Task WaitForAdapterCreation(NativeWebView webView)
     {
         var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        webView.AdapterCreated += (_, _) => tcs.SetResult(true);
+        webView.AdapterCreated += OnAdapterCreated;
         return tcs.Task;
+
+        void OnAdapterCreated(object? sender, WebViewAdapterEventArgs e)
+        {
+            webView.AdapterCreated -= OnAdapterCreated;
+            tcs.TrySetResult(true);
+        }
     }
 
     protected Task WaitForAdapterCreation(NativeWebDialog webView)

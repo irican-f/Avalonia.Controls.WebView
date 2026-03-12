@@ -436,6 +436,16 @@ namespace Avalonia.Xpf.Controls
         {
             base.OnVisualParentChanged(oldParent);
 #endif
+            OnAttached();
+        }
+
+        private async void OnAttached()
+        {
+            // NativeWebView currently expects internal adapter to be determined exactly once.
+            // Note that NativeWebViewControlHost and NativeWebViewCompositorHost still manage proper attached/detached cycle on their own.
+            // Ensuring that native handles are disposed on control detash, unless BeginReparenting is used.
+            if (_controlHostImplTcs.Task.IsCompleted)
+                return;
 
             var adapterFactory = await Core.WebViewAdapter.CreateFactory(args => EnvironmentRequested?.Invoke(this, args));
             INativeWebViewControlImpl controlHostImpl = adapterFactory switch
