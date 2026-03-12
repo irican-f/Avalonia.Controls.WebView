@@ -113,7 +113,7 @@ internal class BrowserIFrameAdapter : JSObjectControlHandle, IWebViewAdapter,
         Object.SetProperty("src", url.AbsoluteUri);
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string text, Uri? baseUri)
     {
         _lastSrc = new Uri("about:srcdoc");
         NavigationStarted?.Invoke(this, new WebViewNavigationStartingEventArgs { Request = _lastSrc });

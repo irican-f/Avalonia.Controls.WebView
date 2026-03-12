@@ -334,7 +334,7 @@ internal interface IWebView
     /// <summary>
     ///     Renders the provided HTML as the top level document.
     /// </summary>
-    void NavigateToString(string text);
+    void NavigateToString(string text, Uri? baseUri);
 
     /// <summary>
     ///     Reloads the top level document.

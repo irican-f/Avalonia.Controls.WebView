@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="../../src/Avalonia.Controls.WebView/build/Avalonia.Controls.WebView.props" />
+<!--    <Import Project="../../src/Avalonia.Controls.WebView/build/Avalonia.Controls.WebView.props" />-->
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -15,9 +15,9 @@
         </PackageReference>
     </ItemGroup>
     <ItemGroup>
-<!--      <PackageReference Include="Avalonia.Controls.WebView" Version="9999.0.0-localbuild" />-->
-        <ProjectReference Include="..\..\src\Avalonia.Controls.WebView\Avalonia.Controls.WebView.csproj" />
-        <ProjectReference Include="..\..\src\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" />
+      <PackageReference Include="Avalonia.Controls.WebView" Version="9999.0.0-localbuild" />
+<!--        <ProjectReference Include="..\..\src\Avalonia.Controls.WebView\Avalonia.Controls.WebView.csproj" />-->
+<!--        <ProjectReference Include="..\..\src\Avalonia.Controls.WebView.Core\Avalonia.Controls.WebView.Core.csproj" />-->
     </ItemGroup>
 
 </Project>

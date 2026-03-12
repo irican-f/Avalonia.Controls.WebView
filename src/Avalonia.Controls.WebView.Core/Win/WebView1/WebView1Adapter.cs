@@ -153,7 +153,7 @@ internal sealed class WebView1Adapter(IWebViewControl control, IWebViewControlSi
             _webViewControl?.put_Source(uri);
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string text, Uri? baseUri)
     {
         using var hstring = new HStringInterop(text);
         _webViewControl?.NavigateToString(hstring.Handle);

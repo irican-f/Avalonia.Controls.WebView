@@ -133,7 +133,7 @@ internal abstract partial class WebView2BaseAdapter(ICoreWebView2Controller cont
         TryGetWebView2()?.Navigate(url.AbsoluteUri);
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string text, Uri? baseUri)
     {
         TryGetWebView2()?.NavigateToString(text);
     }

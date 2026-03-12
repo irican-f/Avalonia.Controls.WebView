@@ -346,12 +346,12 @@ namespace Avalonia.Xpf.Controls
         }
 
         /// <inheritdoc/>
-        public void NavigateToString([StringSyntax("html")] string text)
+        public void NavigateToString([StringSyntax("html")] string text, Uri? baseUri = null)
         {
             if (TryGetAdapter() is { } adapter)
-                adapter.NavigateToString(text);
+                adapter.NavigateToString(text, baseUri);
             else
-                _initialSource = text;
+                _initialSource = (text, baseUri);
         }
 
         /// <inheritdoc/>
@@ -573,9 +573,9 @@ namespace Avalonia.Xpf.Controls
             {
                 adapter.Navigate(url);
             }
-            else if (_initialSource is string html)
+            else if (_initialSource is ValueTuple<string, Uri> pair)
             {
-                adapter.NavigateToString(html);
+                adapter.NavigateToString(pair.Item1, pair.Item2);
             }
 
             EnsureBackground(Background);

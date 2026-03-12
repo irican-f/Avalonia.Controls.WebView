@@ -141,7 +141,7 @@ internal unsafe class WebBrowserAdapter : IWebViewAdapter
         }
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string text, Uri? baseUri)
     {
         // I don't want to spend my time on IDispatch
     }

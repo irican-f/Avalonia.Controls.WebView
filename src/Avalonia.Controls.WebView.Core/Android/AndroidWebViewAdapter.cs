@@ -174,9 +174,9 @@ internal class AndroidWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapter
         NavigateCore(url, null);
     }
 
-    public void NavigateToString(string htmlText)
+    public void NavigateToString(string htmlText, Uri? baseUri)
     {
-        NavigateCore(new Uri("http://localhost"), htmlText);
+        NavigateCore(baseUri ?? new Uri("http://localhost"), htmlText);
     }
 
     private void NavigateCore(Uri url, string? htmlText)

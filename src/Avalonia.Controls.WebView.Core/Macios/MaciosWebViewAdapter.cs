@@ -152,9 +152,9 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
         _ = _webView.LoadRequest(request);
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string text, Uri? baseUri)
     {
-        using var baseUrlStr = NSString.Create("http://localhost:12345/");
+        using var baseUrlStr = NSString.Create(baseUri?.ToString() ?? "http://localhost:12345/");
         using var baseUrl = new NSUrl(baseUrlStr);
         using var html = NSString.Create(text);
         _ = _webView.LoadHtmlString(html, baseUrl);

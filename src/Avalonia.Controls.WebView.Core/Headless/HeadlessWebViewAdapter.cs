@@ -123,10 +123,10 @@ internal partial class HeadlessWebViewAdapter : IWebViewAdapterWithOffscreenBuff
         NavigateInternal(page, true, true);
     }
 
-    public void NavigateToString(string text)
+    public void NavigateToString(string text, Uri? baseUri)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(HeadlessWebViewAdapter));
-        var page = new HeadlessWebViewPage(WebViewHelper.EmptyPage) { Html = text };
+        var page = new HeadlessWebViewPage(baseUri ?? WebViewHelper.EmptyPage) { Html = text };
         NavigateInternal(page, true, true);
     }
 

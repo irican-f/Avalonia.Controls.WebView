@@ -234,9 +234,9 @@ internal abstract class GtkWebViewAdapter : IWebViewAdapterWithFocus, IGtkWebVie
         await RunOnGlibThreadAsync(() => webkit_web_view_load_uri(WebViewHandle, url.ToString())).ConfigureAwait(false);
     }
 
-    public async void NavigateToString(string text)
+    public async void NavigateToString(string text, Uri? baseUri)
     {
-        await RunOnGlibThreadAsync(() => webkit_web_view_load_html(WebViewHandle, text, null)).ConfigureAwait(false);
+        await RunOnGlibThreadAsync(() => webkit_web_view_load_html(WebViewHandle, text, baseUri?.ToString())).ConfigureAwait(false);
     }
 
     public bool Refresh()
