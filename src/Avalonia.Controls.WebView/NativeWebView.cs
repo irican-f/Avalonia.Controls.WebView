@@ -81,9 +81,6 @@ namespace Avalonia.Xpf.Controls
 #endif
 
         private readonly TaskCompletionSource<INativeWebViewControlImpl> _controlHostImplTcs = new();
-#if AVALONIA
-        private readonly WebViewTextInputMethodClient _imClient;
-#endif
 
         static NativeWebView()
         {
@@ -93,10 +90,6 @@ namespace Avalonia.Xpf.Controls
             BackgroundProperty.OverrideMetadata(typeof(NativeWebView), new FrameworkPropertyMetadata(BackgroundPropertyChangedCallback));
 #elif AVALONIA
             FocusableProperty.OverrideDefaultValue<NativeWebView>(true);
-            TextInputMethodClientRequestedEvent.AddClassHandler<NativeWebView>((wv, e) =>
-            {
-                e.Client = wv._imClient;
-            });
 #endif
         }
 
@@ -116,7 +109,6 @@ namespace Avalonia.Xpf.Controls
             };
 
 #if AVALONIA
-            _imClient = new WebViewTextInputMethodClient(this);
             s_setSizing?.Invoke(this);
 #endif
         }
@@ -863,16 +855,5 @@ namespace Avalonia.Xpf.Controls
         }
 #endif
 
-#if AVALONIA
-        private sealed class WebViewTextInputMethodClient(NativeWebView owner) : TextInputMethodClient
-        {
-            public override Visual TextViewVisual => owner;
-            public override bool SupportsPreedit => false;
-            public override bool SupportsSurroundingText => false;
-            public override string SurroundingText => string.Empty;
-            public override Rect CursorRectangle => new(0, 0, 1, 20);
-            public override TextSelection Selection { get; set; }
-        }
-#endif
     }
 }
