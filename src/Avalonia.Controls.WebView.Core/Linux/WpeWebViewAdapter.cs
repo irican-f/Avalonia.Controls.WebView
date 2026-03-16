@@ -269,6 +269,10 @@ internal sealed unsafe class WpeWebViewAdapter
 
     private void OnExportShmBuffer(IntPtr data, IntPtr shmExportedBuffer)
     {
+        var prev = _pendingShmExportedBuffer;
+        if (prev != IntPtr.Zero && prev != shmExportedBuffer)
+            ReleaseShmBuffer(prev);
+
         _pendingShmExportedBuffer = shmExportedBuffer;
         if (DrawRequested is not null)
         {
@@ -921,7 +925,14 @@ internal sealed unsafe class WpeWebViewAdapter
         if (_disposed) return;
         _disposed = true;
 
-        WpeGLibIntegration.Stop();
+        // Release any pending SHM buffer back to WPE before destroying the
+        // exportable, otherwise the wl_shm proxy stays attached to the Wayland
+        // display queue and Mesa warns on teardown.
+        if (_pendingShmExportedBuffer != IntPtr.Zero)
+        {
+            ReleaseShmBuffer(_pendingShmExportedBuffer);
+            _pendingShmExportedBuffer = IntPtr.Zero;
+        }
 
         if (_webView != IntPtr.Zero)
         {
@@ -938,9 +949,16 @@ internal sealed unsafe class WpeWebViewAdapter
         _exportable = IntPtr.Zero;
         _viewBackend = IntPtr.Zero;
 
+        // Pump GLib iterations to let WebKit/WPE finalize Wayland resource cleanup
+        // before we stop the GLib integration and tear down the context.
+        var ctx = WpeInterop.g_main_context_default();
+        for (int i = 0; i < 10; i++)
+            WpeInterop.g_main_context_iteration(ctx, false);
+
+        WpeGLibIntegration.Stop();
+
         if (_shmClientHandle.IsAllocated)
             _shmClientHandle.Free();
-        _pendingShmExportedBuffer = IntPtr.Zero;
 
         if (_selfHandle.IsAllocated)
             _selfHandle.Free();
