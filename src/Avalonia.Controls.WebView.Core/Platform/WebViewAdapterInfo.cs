@@ -175,7 +175,12 @@ public record WebViewAdapterInfo(
 #else
                 PlatformNotSupported(adapterType),
 #endif
-            WebViewAdapterType.WpeWebKit => Controls.Linux.WpeWebViewAdapter.GetWpeInfo(),
+            WebViewAdapterType.WpeWebKit =>
+#if LINUX
+                Controls.Linux.WpeWebViewAdapter.GetWpeInfo(),
+#else
+                PlatformNotSupported(adapterType),
+#endif
             WebViewAdapterType.Headless => Controls.Headless.HeadlessWebViewAdapter.GetHeadlessInfo(),
             _ => UnknownAdapter(adapterType)
         };
