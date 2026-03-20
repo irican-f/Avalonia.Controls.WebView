@@ -721,7 +721,7 @@ namespace Avalonia.Xpf.Controls
 #if WPF
         protected override void OnGotFocus(RoutedEventArgs e)
 #elif AVALONIA
-        protected override void OnGotFocus(GotFocusEventArgs e)
+        protected override void OnGotFocus(FocusChangedEventArgs e)
 #endif
         {
             base.OnGotFocus(e);
@@ -735,7 +735,7 @@ namespace Avalonia.Xpf.Controls
 #if WPF
         protected override void OnLostFocus(RoutedEventArgs e)
 #elif AVALONIA
-        protected override void OnLostFocus(RoutedEventArgs e)
+        protected override void OnLostFocus(FocusChangedEventArgs e)
 #endif
         {
             base.OnLostFocus(e);

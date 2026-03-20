@@ -1,6 +1,6 @@
-# 12.0.0-preview2
+# 12.0.0-rc1
 
-- Compatibility with Avalonia 12.0, while keeping 11.1 support
+- Compatibility with Avalonia 12.0
 - Dropped .NET Standard and .NET Framework support
 - NativeWebView now supports Linux with WpeWebView backend
 - NativeWebView and NativeWebDialog now support Browser backend, but with sandboxing limitations
