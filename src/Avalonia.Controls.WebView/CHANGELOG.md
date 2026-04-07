@@ -1,4 +1,4 @@
-# 12.0.0-rc1
+# 12.0.0
 
 - Compatibility with Avalonia 12.0
 - Dropped .NET Standard and .NET Framework support
