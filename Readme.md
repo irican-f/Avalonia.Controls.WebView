@@ -19,7 +19,7 @@ Gets oauth URL as an input, and returns redirected URL once authentication is co
 More or less just a helper over OAuth specification.
 Compatible with Google, Azure and custom OAuth implementations, based on redirect Urls.
 
-See Accelerate `avalonia-docs` for actual documentation on each component. 
+See [`avalonia-docs`](https://docs.avaloniaui.net/docs/app-development/embedding-web-content) for actual documentation on each component. 
 
 ## Projects
 
