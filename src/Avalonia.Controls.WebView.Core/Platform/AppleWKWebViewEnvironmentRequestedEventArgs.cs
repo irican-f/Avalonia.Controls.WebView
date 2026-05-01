@@ -35,4 +35,9 @@ public sealed class AppleWKWebViewEnvironmentRequestedEventArgs : WebViewEnviron
     /// Gets or sets a value indicating whether the web view limits navigation to pages within the application's domain.
     /// </summary>
     public bool LimitsNavigationsToAppBoundDomains { get; set; } = false;
+    
+    /// <summary>
+    /// Gets or sets the name of the script message handler.
+    /// </summary>
+    public string? ScriptHandlerMessageName { get; set; }  
 }

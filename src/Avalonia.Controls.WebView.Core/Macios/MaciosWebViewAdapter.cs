@@ -20,9 +20,10 @@ namespace Avalonia.Controls.Macios;
 internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterWithInputRedirect,
     IWebViewAdapterWithCookieManager, IWebViewAdapterWithCommands, IWebViewWithPrint, IAppleWKWebViewPlatformHandle
 {
-    private const string PostAvWebViewMessageName = "postAvWebViewMessage";
+    private const string DefaultPostAvWebViewMessageName = "postAvWebViewMessage";
 
-    private readonly NSString _postAvWebViewMessageName = NSString.Create(PostAvWebViewMessageName);
+    private readonly string _scriptHandlerMessageName;
+    private readonly NSString _scriptHandlerMessageNameNative;
     private readonly WKWebViewConfiguration _config;
     private readonly WKWebView _webView;
     private readonly WKNavigationDelegate _navDelegate;
@@ -33,8 +34,10 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
         _scriptHandler = new WKScriptMessageHandler();
         _scriptHandler.DidReceiveScriptMessage += OnScriptHandlerOnDidReceiveScriptMessage;
 
+        _scriptHandlerMessageName = options.ScriptHandlerMessageName ?? DefaultPostAvWebViewMessageName;
+        _scriptHandlerMessageNameNative = NSString.Create(_scriptHandlerMessageName);
         _config = new WKWebViewConfiguration { JavaScriptEnabled = true };
-        _config.AddScriptMessageHandler(_scriptHandler, _postAvWebViewMessageName);
+        _config.AddScriptMessageHandler(_scriptHandler, _scriptHandlerMessageNameNative);
 
         if (options.ApplicationNameForUserAgent is not null)
         {
@@ -204,7 +207,7 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
         _webView.BecomeFirstResponder -= OnWebViewOnBecomeFirstResponder;
         _webView.ResignFirstResponder -= OnWebViewOnResignFirstResponder;
 
-        _config.RemoveScriptMessageHandler(_postAvWebViewMessageName);
+        _config.RemoveScriptMessageHandler(_scriptHandlerMessageNameNative);
         _webView.NavigationDelegate = null;
         _webView.LoadRequest(null);
 
@@ -239,7 +242,7 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
 
     private async void OnScriptHandlerOnDidReceiveScriptMessage(object? sender, WKScriptMessageHandler.ScriptMessageEventArgs args)
     {
-        if (args.Name == PostAvWebViewMessageName)
+        if (args.Name == _scriptHandlerMessageName)
         {
             var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
             var state = new WKWebView.JSCallState(_webView.Handle, tcs);
@@ -288,7 +291,7 @@ internal class MaciosWebViewAdapter : IWebViewAdapterWithFocus, IWebViewAdapterW
 
     private async void OnDelegateOnDidFinishNavigation(object? sender, EventArgs args)
     {
-        _ = await InvokeScript($"function invokeCSharpAction(data){{window.webkit.messageHandlers.{PostAvWebViewMessageName}.postMessage(data);}}");
+        _ = await InvokeScript($"function invokeCSharpAction(data){{window.webkit.messageHandlers.{_scriptHandlerMessageName}.postMessage(data);}}");
 
         using var url = _webView.Url;
         NavigationCompleted?.Invoke(this, new WebViewNavigationCompletedEventArgs { Request = Uri.TryCreate(url!.AbsoluteString, UriKind.Absolute, out var uri) ? uri : null, IsSuccess = true });
